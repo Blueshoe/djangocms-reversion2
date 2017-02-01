@@ -3,7 +3,7 @@ Django-CMS Reversion2
 =====================
 
 
-**Django-CMS Reversion2** is a plugin for **Django CMS** which aims to provide a revision system
+**Django-CMS Reversion2** is a plugin for **Django CMS** which aims to provide a revision system for
 **Django-CMS**.
 
 Documentation
