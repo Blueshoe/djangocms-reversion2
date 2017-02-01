@@ -35,5 +35,3 @@ additional parameters ('follows', etc.). That means, model instances referred to
 are currently not versioned and therefore not reverted. Such instances must still exist when reverting. Plugins having
 reverse foreign key relations (as is the case in many-to-many relations) are handled particularly badly. The delteion of
 the Plugin entails the deletion of the related model instance/m2m model instance.
-
-**Permission System** -
