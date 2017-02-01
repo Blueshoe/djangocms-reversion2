@@ -4,7 +4,7 @@ from distutils.core import setup
 from djangocms_reversion2 import __version__
 
 CLASSIFIERS = [
-    'Development Status :: 4 - Beta',
+    'Development Status :: 2 - Pre-Alpha',
     'Framework :: Django',
     'Environment :: Web Environment',
     'Intended Audience :: Developers',
