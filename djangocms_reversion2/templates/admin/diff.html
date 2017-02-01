@@ -1,0 +1,21 @@
+{% extends 'admin/base.html' %}
+
+{% load i18n %}
+
+{% block content %}
+<h2>{% trans 'Placeholders with changes' %}</h2>
+    {% for slot, html in slot_html.items %}
+        <h3>{{ slot }}</h3>
+        <div>{{ html|safe }}</div>
+    {% endfor %}
+
+<h2>{% trans 'Info' %}</h2>
+<div>
+    <p>
+        {% blocktrans %}
+            Reverting to this page revision will apply the above changes: green sections will be inserted,
+            red sections will be deleted!
+        {% endblocktrans %}
+    </p>
+</div>
+{% endblock %}
