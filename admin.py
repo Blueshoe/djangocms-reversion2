@@ -22,6 +22,7 @@ from django.shortcuts import redirect, render_to_response, get_object_or_404, re
 from django.template.loader import get_template
 from django.template.response import TemplateResponse
 from django.utils.translation import ugettext_lazy as _
+from sekizai.context import SekizaiContext
 
 from djangocms_reversion2.forms import PageRevisionForm
 from djangocms_reversion2.models import PageMarker
@@ -52,7 +53,7 @@ class PageRevisionAdmin(admin.ModelAdmin):
         return admin_urls + urls
 
     def download_audit_trail(self, request):
-        self.set_page_lang(request)
+        # self.set_page_lang(request)
         return TemplateResponse(request, 'admin/download_audit_trail.html', {})
 
     def revert(self, request, **kwargs):

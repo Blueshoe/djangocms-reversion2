@@ -14,6 +14,8 @@ from django.utils.translation import ugettext_lazy as _
 from django.utils.functional import cached_property
 
 import reversion
+from sekizai.context import SekizaiContext
+
 from djangocms_reversion2.models import PageRevision, PageMarker, PageRevisionPlaceholderContent, HtmlContent
 from reversion.signals import post_revision_commit
 

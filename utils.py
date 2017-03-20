@@ -9,6 +9,7 @@ from django.conf import settings
 from django.utils.functional import cached_property
 from django.utils.translation import ugettext_lazy as _
 from django.utils.encoding import smart_text as u
+from sekizai.context import SekizaiContext
 
 from djangocms_reversion2.models import PageRevision
 
