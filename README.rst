@@ -6,6 +6,18 @@ Django-CMS Reversion2
 **Django-CMS Reversion2** is a plugin for **Django CMS** which aims to provide a revision system for
 **Django-CMS**.
 
+As long as this plugin is under development it shall be used as git submodule.
+
+Installation
+============
+
+* git submodule add <url> djangocms_reversion2
+* git submodule update --init
+* cd djangocms_reversion2/
+* pip install -r requirements.txt
+* add the "djangocms_reversion2" to INSTALLED_APPS
+* python manage.py migrate
+
 Documentation
 =============
 
@@ -20,6 +32,7 @@ These are the core features of **Django-CMS Reversion2**:
 * Revisions for page drafts in given language
 * Reverting to any previous revision of page
 * Auto-Revisions when reverting from unsaved drafts
+* adds a trash to the page tree
 
 
 ToDo's

@@ -6,7 +6,6 @@ from cms.models.placeholdermodel import Placeholder
 from cms.plugin_rendering import ContentRenderer
 
 from django.conf import settings
-from django.template.context import Context
 from django.utils.functional import cached_property
 from django.utils.translation import ugettext_lazy as _
 from django.utils.encoding import smart_text as u
@@ -79,7 +78,7 @@ class PageRevisionComparator(object):
         if isinstance(obj, PageRevision):
             return u(obj.placeholder_contents.get(placeholder=placeholder).html_content.body)
         if isinstance(obj, Page):
-            context = Context({'request': self.request})
+            context = SekizaiContext({'request': self.request})
             renderer = ContentRenderer(self.request)
             if hasattr(placeholder, '_plugins_cache'):
                 del placeholder._plugins_cache

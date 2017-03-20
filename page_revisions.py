@@ -7,6 +7,7 @@ from cms.models import Title
 from cms.models.pagemodel import Page
 from cms.models.placeholdermodel import Placeholder
 from cms.plugin_rendering import ContentRenderer
+from django.db import transaction
 from django.template.context import Context
 from django.utils.encoding import smart_text as u
 from django.utils.translation import ugettext_lazy as _
@@ -42,13 +43,17 @@ def revert_page(page_revision, request):
         if page_revision == marker.page_revision:
             return None
 
-    # now we can revert to the given revision ...
-    CMSPlugin.objects.filter(placeholder__page=page_revision.page, language=language).delete()
+    with transaction.atomic():
+        # now we can revert to the given revision ...
+        CMSPlugin.objects.filter(placeholder__page=page_revision.page, language=language).update(placeholder=None)
 
-    page_revision.revision.revert()
+    with transaction.atomic():
+        page_revision.revision.revert()
+
     # ... and update the marker's revision to the new state of affairs
-    marker.page_revision = page_revision
-    marker.save()
+    with transaction.atomic():
+        marker.page_revision = page_revision
+        marker.save()
     return marker
 
 
@@ -196,6 +201,6 @@ def create_placeholder_contents(page_revision, request):
 def placeholder_html(placeholder, request, language):
     if hasattr(placeholder, '_plugins_cache'):
         del placeholder._plugins_cache
-    context = Context({'request': request})
+    context = SekizaiContext({'request': request})
     renderer = ContentRenderer(request)
     return renderer.render_placeholder(placeholder, context, language=language).strip()

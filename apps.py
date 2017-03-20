@@ -20,12 +20,43 @@ class CMSReversion2Config(AppConfig):
 
     # we cannot make hard imports of the django-cms models
     CMS_MODELS_REGISTRATION = {
-        'Page': {'registration': {},
-                 'handler': (handle_page_save, 'save_page_reversion',)},
-        'Title': {'registration': {},
-                  'handler': (handle_title_save, 'save_title_reversion',)},
-        'CMSPlugin': {'registration': {'follow': ('cmsplugin_ptr',)},
-                      'handler': (handle_cms_plugin_save, 'save_{cmsplugin}_reversion',)},
+        'Page': {
+            'registration': {
+                "fields": None,
+                "follow": (),
+                "format": 'json',
+                "for_concrete_model": True,
+                "ignore_duplicates": False,
+            },
+            'handler': (handle_page_save,
+                        'save_page_reversion',
+                        )
+        },
+        'Title': {
+            'registration': {
+                "fields": None,
+                "follow": (),
+                "format": 'json',
+                "for_concrete_model": True,
+                "ignore_duplicates": False,
+            },
+            'handler': (handle_title_save,
+                        'save_title_reversion',
+                        )
+        },
+        'CMSPlugin': {
+            'registration': {
+                "fields": None,
+                'follow': ('cmsplugin_ptr',),
+                "format": 'json',
+                "for_concrete_model": True,
+                "ignore_duplicates": False,
+            },
+            'handler': (handle_cms_plugin_save,
+                        'save_{cmsplugin}_reversion',
+                        )
+        },
+
     }
 
     def ready(self):
@@ -56,13 +87,12 @@ class CMSReversion2Config(AppConfig):
                 reversion.register(klass)
             else:
                 reversion.register(klass, **registration)
-        else:
-            if 'CMSPlugin' in _get_ancestor_class_names(klass, exclude='CMSPlugin'):
-                opt_dict = rev._registered_models[rev._get_registration_key(klass)]._asdict()
-                if not 'cmsplugin_ptr' in opt_dict['follow']:
-                    opt_dict['follow'] += ('cmsplugin_ptr', )
-                    rev._registered_models[rev._get_registration_key(klass)] = rev._VersionOptions(opt_dict)
-                # reversion.unregister(klass)
-                # reversion.register(klass, **registration)
+        elif klass.__name__ != 'CMSPlugin' and 'CMSPlugin' in _get_ancestor_class_names(klass):
+            opt_dict = rev._registered_models[rev._get_registration_key(klass)]._asdict()
+            if not 'cmsplugin_ptr' in opt_dict['follow']:
+                opt_dict['follow'] += ('cmsplugin_ptr', )
+                rev._registered_models[rev._get_registration_key(klass)] = rev._VersionOptions(**opt_dict)
+            # reversion.unregister(klass)
+            # reversion.register(klass, **registration)
 
 
