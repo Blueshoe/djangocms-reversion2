@@ -3,6 +3,9 @@
 {% load i18n %}
 
 {% block content %}
+
+<button class="button" onclick="window.history.back();">{% trans 'back' %}</button>
+
 <h2>{% trans 'Placeholders with changes' %}</h2>
     {% for slot, html in slot_html.items %}
         <h3>{{ slot }}</h3>
@@ -17,5 +20,6 @@
             red sections will be deleted!
         {% endblocktrans %}
     </p>
+    <a class="button" href="{%  url 'admin:djangocms_reversion2_revert_page' page_revision_id %}"> {% trans 'Revert' %}</a>
 </div>
 {% endblock %}

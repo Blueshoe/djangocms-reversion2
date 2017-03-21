@@ -95,7 +95,9 @@ class PageRevisionAdmin(admin.ModelAdmin):
 
         context = SekizaiContext({
             'title': _(u'Diff current page and page revision #{pk}').format(pk=pk),
-            'slot_html': slot_html
+            'slot_html': slot_html,
+            'is_popup': True,
+            'page_revision_id': page_revision.pk
         })
         return render(request, self.diff_template, context=context)
 
