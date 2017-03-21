@@ -136,6 +136,8 @@ class PageRevisionAdmin(admin.ModelAdmin):
 
     def get_queryset(self, request):
         qs = super(PageRevisionAdmin, self).get_queryset(request)
+        if not get_page(request):
+            return Page.objects.none()
         request.rev_page = getattr(request, 'rev_page', None) or Page.objects.get(pk=get_page(request))
         page = request.rev_page
         language = get_language_from_request(request, current_page=page)

@@ -45,7 +45,7 @@ class ReportXLSXFormatter(object):
             slot_html = {slot: html for slot, html in prc.slot_html.items() if slot in prc.changed_slots}
 
             context = SekizaiContext({'slot_html': slot_html})
-            html = str(render_to_string('admin/audit_trail.html', context))
+            html = unicode(render_to_string('admin/audit_trail.html', context))
             data.append([rev.revision.id, rev.revision.date_created, rev.revision.user.username, rev.revision.comment,
                          html])
         return data
