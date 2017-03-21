@@ -1,7 +1,8 @@
 {% extends "admin/base_site.html" %}
+
 {% block content %}
     Download Audit Trail
     <br>
-    <button>Download CSV</button>
-    <button>Download PDF</button>
+    <a class="button" href="{%  url 'admin:djangocms_reversion2_download_audit_xlsx' %}?page_id={{ p_id }}&language={{ lang }}">Download XLSX</a>
+    <!--<button>Download PDF</button>-->
 {% endblock %}

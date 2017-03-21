@@ -1,0 +1,4 @@
+{% for slot, html in slot_html.items %}
+    <h3>{{ slot }}</h3>
+    <div>{{ html|safe }}</div>
+{% endfor %}

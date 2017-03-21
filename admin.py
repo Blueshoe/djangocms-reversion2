@@ -24,6 +24,7 @@ from django.template.response import TemplateResponse
 from django.utils.translation import ugettext_lazy as _
 from sekizai.context import SekizaiContext
 
+from djangocms_reversion2 import exporter
 from djangocms_reversion2.forms import PageRevisionForm
 from djangocms_reversion2.models import PageMarker
 from djangocms_reversion2.page_revisions import PageRevisionBatchCreator, PageRevisionCreator, revert_page
@@ -45,6 +46,7 @@ class PageRevisionAdmin(admin.ModelAdmin):
     def get_urls(self):
         urls = super(PageRevisionAdmin, self).get_urls()
         admin_urls = [
+            url(r'^audittrail/xlsx$', self.download_audit_trail_xlsx, name='djangocms_reversion2_download_audit_xlsx'),
             url(r'^audittrail/$', self.download_audit_trail, name='djangocms_reversion2_download_audit'),
             url(r'^revert/(?P<pk>\d+)$', self.revert, name='djangocms_reversion2_revert_page'),
             url(r'^diff/(?P<pk>\d+)$', self.diff, name='djangocms_reversion2_diff'),
@@ -54,7 +56,17 @@ class PageRevisionAdmin(admin.ModelAdmin):
 
     def download_audit_trail(self, request):
         # self.set_page_lang(request)
-        return TemplateResponse(request, 'admin/download_audit_trail.html', {})
+        return TemplateResponse(request, 'admin/download_audit_trail.html',
+                                {'p_id': request.GET.get('page_id'), 'lang': request.GET.get('language')}
+                                )
+
+    def download_audit_trail_xlsx(self, request, **kwargs):
+        # self.set_page_lang(request)  , language=get_language_from_request(request)
+        page_id = request.GET.get('page_id')
+        language = request.GET.get('language')
+        request.current_page = Page.objects.get(id=page_id)
+        report = exporter.ReportXLSXFormatter()
+        return report.get_download_response(request, self.get_queryset(request), language=language)
 
     def revert(self, request, **kwargs):
         pk = kwargs.pop('pk')
@@ -122,9 +134,15 @@ class PageRevisionAdmin(admin.ModelAdmin):
 
     def get_queryset(self, request):
         qs = super(PageRevisionAdmin, self).get_queryset(request)
-        page = request.current_page
+        request.rev_page = getattr(request, 'rev_page', None) or Page.objects.get(pk=get_page(request))
+        page = request.rev_page
         language = get_language_from_request(request, current_page=page)
         # page_id, language = page_lang(request)
+
+        request.GET._mutable = True
+        request.GET.pop('cms_path', None)
+        request.GET._mutable = False
+
         if page:
             qs = qs.filter(page=page)
         if language:

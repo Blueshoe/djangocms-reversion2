@@ -27,7 +27,7 @@ def get_page(request, remove_params=True):
         # language = get.pop('language', [None])[0]
         get._mutable = False
     else:
-        page_id = get.get('page_id', [None])[0]
+        page_id = get.get('page_id', [None])
         # language = get.get('language', [None])[0]
     # request.current_page = page_id
     return page_id  #, language
