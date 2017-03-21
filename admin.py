@@ -33,7 +33,7 @@ from .models import PageRevision
 
 BIN_NAMING_PREFIX = '.'
 BIN_PAGE_NAME = BIN_NAMING_PREFIX + 'Papierkorb'
-BIN_PAGE_LANGUAGE = 'en'
+BIN_PAGE_LANGUAGE = 'de'
 BIN_BUCKET_NAMING = BIN_NAMING_PREFIX + 'Eimer-%d.%m.%Y'
 
 
@@ -233,7 +233,7 @@ class PageAdmin2(PageAdmin):
         except ObjectDoesNotExist:
             p = cms.api.create_page(BIN_PAGE_NAME, cms.constants.TEMPLATE_INHERITANCE_MAGIC, BIN_PAGE_LANGUAGE)
         except MultipleObjectsReturned:
-            p = Page.objects.filter(title_set__title=BIN_PAGE_NAME, parent=p).first()
+            p = Page.objects.filter(title_set__title=BIN_PAGE_NAME).first()
 
         # is the page already under the ~BIN folder?
         is_in_bin = False
@@ -258,6 +258,8 @@ class PageAdmin2(PageAdmin):
                                                BIN_PAGE_LANGUAGE, parent=p)
         obj.move_page(bucket)
         p.fix_tree()
+        obj.fix_tree()
+        bucket.fix_tree()
 
     def get_tree(self, request):
         """
@@ -381,6 +383,10 @@ def render_admin_rows(request, pages, site, filtered=False, language=None):
     )
 
     for cms_title in cms_page_titles.iterator():
+        # if cms_title.title.startswith(BIN_NAMING_PREFIX):
+        #    for lang in languages:
+        #        cms_title_cache[cms_title.page_id][lang] = cms_title
+        # else:
         cms_title_cache[cms_title.page_id][cms_title.language] = cms_title
 
     def render_page_row(page):
@@ -403,7 +409,7 @@ def render_admin_rows(request, pages, site, filtered=False, language=None):
         else:
             children = page.get_children()
 
-        is_bin = page.title_set.filter(title__startswith=BIN_NAMING_PREFIX).count() > 0
+        is_bin = page.title_set.filter(title__startswith=BIN_NAMING_PREFIX).exists()
 
         if is_bin:
             context = {
@@ -422,7 +428,7 @@ def render_admin_rows(request, pages, site, filtered=False, language=None):
                 'has_move_page_permission': False,
                 'children': children,
                 'site_languages': languages,
-                'open_nodes': open_nodes,
+                'open_nodes': [],#open_nodes,
                 'cms_current_site': site,
                 'is_popup': (IS_POPUP_VAR in request.POST or IS_POPUP_VAR in request.GET)
             }
