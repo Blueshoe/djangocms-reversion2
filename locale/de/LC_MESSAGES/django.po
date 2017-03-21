@@ -1,0 +1,201 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2017-03-21 09:23+0000\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: admin.py:70
+#, python-brace-format
+msgid "You have succesfully reverted to {rev}"
+msgstr "Erfolgreiche Zurücksetzung auf {rev}"
+
+#: admin.py:81
+msgid "No diff between revision and current page detected"
+msgstr "Es wurde kein Unterschied zwischen der Revision und der aktuellen Seite gefunden"
+
+#: admin.py:85
+#, python-brace-format
+msgid "Diff current page and page revision #{pk}"
+msgstr "Unterschied zwischen aktueller Seite und Revision #{pk}"
+
+#: admin.py:97
+#, python-brace-format
+msgid "{num} unversioned pages have been versioned."
+msgstr "{num} unversionierte Seite(n) wurden versioniert."
+
+#: admin.py:105
+msgid "This page is already revised."
+msgstr "Diese Seite ist bereits versioniert."
+
+#: admin.py:138 admin.py:140
+msgid "Revert"
+msgstr "Zurücksetzen"
+
+#: admin.py:146
+msgid "View diff"
+msgstr "Unterschiede anzeigen"
+
+#: admin.py:148
+msgid "Diff"
+msgstr "Unterschied"
+
+#: admin.py:153 forms.py:14
+msgid "Comment"
+msgstr "Kommentar"
+
+#: admin.py:157
+msgid "By"
+msgstr "Von"
+
+#: admin.py:161
+msgid "Date"
+msgstr "Datum"
+
+#: cms_toolbars.py:16
+msgid "Reversion"
+msgstr "Reversion"
+
+#: cms_toolbars.py:18
+msgid "Create a snapshot of current page"
+msgstr "Versioniere die aktuellen Seite"
+
+#: cms_toolbars.py:22
+msgid "Show history"
+msgstr "Versionsgeschichte"
+
+#: cms_toolbars.py:27
+msgid "Create a snapshot of all unrevised pages"
+msgstr "Versioniere alle unversionierten Seiten"
+
+#: cms_toolbars.py:32
+msgid "Download audit trail"
+msgstr "Audit trail herunterladen"
+
+#: forms.py:14
+msgid "Explain this snapshot"
+msgstr "Beschreibung der Momentaufnahme"
+
+#: models.py:14 models.py:38
+msgid "page"
+msgstr "Seite"
+
+#: models.py:17
+msgid "page revision"
+msgstr "Seitenrevision"
+
+#: models.py:18 models.py:37
+msgid "language"
+msgstr "Sprache"
+
+#: models.py:39
+msgid "revision"
+msgstr "Revision"
+
+#: models.py:53
+msgid "Content"
+msgstr "Inhalt"
+
+#: models.py:57
+msgid "HTML content"
+msgstr "Html-Inhalt"
+
+#: models.py:58
+msgid "HTML contents"
+msgstr "Html-Inhalte"
+
+#: models.py:72
+msgid "Page revision"
+msgstr "Seitenrevision"
+
+#: models.py:76
+msgid "HTML Content"
+msgstr "Html-Inhalt"
+
+#: models.py:80
+msgid "Page revision placeholder content"
+msgstr "Inhalt des Seitenversion Platzhalters"
+
+#: models.py:81
+msgid "Page revision placeholder contents"
+msgstr "Inhalte des Seitenversion Platzhalters"
+
+#: page_revisions.py:24
+msgid "Created in batch"
+msgstr "Stapelerstellung"
+
+#: page_revisions.py:25
+msgid "Autocreated because of reversion of unsaved draft"
+msgstr "Wegen ungespeicherter Arbeitsversion automatisch erstellt"
+
+#: page_revisions.py:144
+msgid "Revision creation failed"
+msgstr "Erstellung der Revision fehlgeschlagen"
+
+#: templates/admin/bin_menu.html:24
+msgid "Home"
+msgstr "Home"
+
+#: templates/admin/bin_menu.html:34
+msgid "Softroot"
+msgstr "Softroot"
+
+#: templates/admin/bin_menu.html:46
+#, python-format
+msgid "Application: %(apphook)s"
+msgstr "Applikation: %(apphook)s"
+
+#: templates/admin/bin_menu.html:72
+msgid "Options"
+msgstr "Optionen"
+
+#: templates/admin/bin_menu.html:81 templates/admin/bin_menu.html.py:83
+msgid "Delete"
+msgstr "Löschen"
+
+#: templates/admin/diff.html:6
+msgid "Placeholders with changes"
+msgstr "Platzhalter mit Änderungen"
+
+#: templates/admin/diff.html:12
+msgid "Info"
+msgstr "Info"
+
+#: templates/admin/diff.html:15
+msgid ""
+"\n"
+"            Reverting to this page revision will apply the above changes: "
+"green sections will be inserted,\n"
+"            red sections will be deleted!\n"
+"        "
+msgstr ""
+"\n"
+"            Die Seite auf diese Revision zurückzusetzen, nimmt folgende Änderungen vor: "
+"Grüne Hervorhebungen werden eingefügt,\n"
+"            rote Hervorhebungen werden entfernt!\n"
+"        "
+
+#: utils.py:40
+msgid "You can only compare revisions of the same page."
+msgstr "Man kann nur Revisionen der gleichen Seite miteinander vergleichen."
+
+#: utils.py:41
+msgid "You can only compare revisions of the same language."
+msgstr "Man kann nur Revisionen der gleichen Sprache miteinander verleichen."
+
+#: utils.py:42
+msgid "Please provide either page_revision2 or request."
+msgstr "Bitte page_revision2 oder request liefern."
