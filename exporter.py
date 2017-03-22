@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from django.http import HttpResponse
 from django.template.loader import render_to_string
+from django.utils.encoding import smart_str, force_str, force_text
 from sekizai.context import SekizaiContext
 from xlsxwriter.workbook import Workbook
 from decimal import Decimal as D
@@ -45,7 +46,8 @@ class ReportXLSXFormatter(object):
             slot_html = {slot: html for slot, html in prc.slot_html.items() if slot in prc.changed_slots}
 
             context = SekizaiContext({'slot_html': slot_html})
-            html = str(render_to_string('admin/audit_trail.html', context))
+            html = str(render_to_string('admin/audit_trail.html', context)
+                       .encode('utf-8', errors='replace')).decode('utf-8')
             data.append([rev.revision.id, rev.revision.date_created, rev.revision.user.username, rev.revision.comment,
                          html])
         return data
@@ -77,18 +79,6 @@ def enc(st, encoding='latin1'):
     return string.encode(encoding, 'replace')
 
 
-serializers = {
-    'unicode': lambda f: f,
-    'int': lambda f: str(f),
-    'float': lambda f: str(f).replace('.', ','),
-    'str': lambda f: f,
-    'datetime': lambda f: f.strftime('%d.%m.%Y %H:%M'),
-    'bool': lambda f: 'WAHR' if f else 'FALSCH',
-    'Decimal': lambda f: str(f.quantize(D('0.01'))).replace('.', ','),
-    'NoneType': lambda f: serialize_field(''),
-}
-
-
 def serialize_field(field, fallback=None):
     """
     tries to serialize any Model
@@ -96,6 +86,18 @@ def serialize_field(field, fallback=None):
     :param field: from _meta of a model
     :return: string
     """
+
+    serializers = {
+        'unicode': lambda f: f,
+        'int': lambda f: str(f),
+        'float': lambda f: str(f).replace('.', ','),
+        'str': lambda f: f,
+        'datetime': lambda f: f.strftime('%d.%m.%Y %H:%M'),
+        'bool': lambda f: 'WAHR' if f else 'FALSCH',
+        'Decimal': lambda f: str(f.quantize(D('0.01'))).replace('.', ','),
+        'NoneType': lambda f: serialize_field(''),
+    }
+
     type_name = type(field).__name__
 
     if type_name in serializers:
