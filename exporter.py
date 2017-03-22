@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 from django.http import HttpResponse
 from django.template.loader import render_to_string
-from django.utils.encoding import smart_str, force_str, force_text
 from sekizai.context import SekizaiContext
 from xlsxwriter.workbook import Workbook
 from decimal import Decimal as D
