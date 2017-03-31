@@ -37,11 +37,24 @@ BIN_PAGE_LANGUAGE = 'de'
 BIN_BUCKET_NAMING = BIN_NAMING_PREFIX + 'Eimer-%d.%m.%Y'
 
 
+def revert_escape(txt, transform=True):
+    """
+    transform replaces the '<ins ' or '<del ' with '<div '
+    :type transform: bool
+    """
+    html = txt.replace("&amp;", "&").replace("&lt;", "<").replace("&gt;", ">").replace("&para;<br>", "\n")
+    if transform:
+        html = html.replace('<ins ', '<div ').replace('<del ', '<div ').replace('</ins>', '</div>')\
+            .replace('</del>', '</div>')
+    return html
+
+
 class PageRevisionAdmin(admin.ModelAdmin):
     form = PageRevisionForm
     list_display = ('__str__', 'date', 'user', 'comment', 'revert_link', 'diff_link')
     list_display_links = None
     diff_template = 'admin/diff.html'
+    diff_view_template = 'admin/diff.html'
 
     def get_urls(self):
         urls = super(PageRevisionAdmin, self).get_urls()
@@ -49,6 +62,8 @@ class PageRevisionAdmin(admin.ModelAdmin):
             url(r'^audittrail/xlsx$', self.download_audit_trail_xlsx, name='djangocms_reversion2_download_audit_xlsx'),
             url(r'^audittrail/$', self.download_audit_trail, name='djangocms_reversion2_download_audit'),
             url(r'^revert/(?P<pk>\d+)$', self.revert, name='djangocms_reversion2_revert_page'),
+            url(r'^diff-view/page/(?P<page_pk>\d+)/left/(?P<left_pk>\d+)/right/(?P<right_pk>\d+)$', self.diff_view,
+                name='djangocms_reversion2_diff_view'),
             url(r'^diff/(?P<pk>\d+)$', self.diff, name='djangocms_reversion2_diff'),
             url(r'^batch-add/(?P<pk>\w+)$', self.batch_add, name='djangocms_reversion2_pagerevision_batch_add'),
         ]
@@ -86,8 +101,11 @@ class PageRevisionAdmin(admin.ModelAdmin):
         pk = kwargs.pop('pk')
         page_revision = PageRevision.objects.get(id=pk)
 
+        def revert_escape(txt):
+            return txt.replace("&amp;", "&").replace("&lt;", "<").replace("&gt;", ">").replace("&para;<br>", "\n")
+
         prc = PageRevisionComparator(page_revision, request=request)
-        slot_html = {slot: html for slot, html in prc.slot_html.items() if slot in prc.changed_slots}
+        slot_html = {slot: revert_escape(html) for slot, html in prc.slot_html.items() if slot in prc.changed_slots}
 
         if not slot_html:
             messages.info(request, _(u'No diff between revision and current page detected'))
@@ -97,9 +115,56 @@ class PageRevisionAdmin(admin.ModelAdmin):
             'title': _(u'Diff current page and page revision #{pk}').format(pk=pk),
             'slot_html': slot_html,
             'is_popup': True,
-            'page_revision_id': page_revision.pk
+            'page_revision_id': page_revision.pk,
+            'request': request
         })
         return render(request, self.diff_template, context=context)
+
+    def diff_view(self, request, **kwargs):
+        left_pk = kwargs.pop('left_pk')
+        right_pk = kwargs.pop('right_pk')
+        page_id = kwargs.pop('page_pk')
+
+        if int(left_pk) == 0 and int(right_pk) == 0:
+            page = get_object_or_404(Page, pk=page_id)
+            left_pk = PageRevision.objects.filter(page=page).first().pk
+            right_pk = 0
+
+        left_page_revision = PageRevision.objects.get(id=left_pk)
+
+        if int(right_pk) == 0:
+            prc = PageRevisionComparator(left_page_revision, request=request)
+            right_page_revision = None
+            right_page_revision_id = 0
+        else:
+            right_page_revision = PageRevision.objects.get(id=right_pk)
+            prc = PageRevisionComparator(left_page_revision, page_revision2=right_page_revision)
+            right_page_revision_id = right_page_revision.pk
+
+
+
+        rendered_placerholders = prc.rendered_placeholders
+
+        slot_html = {slot: revert_escape(html) for slot, html in prc.slot_html.items() if slot in prc.changed_slots}
+
+        revision_list = PageRevision.objects.filter(page=prc.page)
+
+        if not slot_html:
+            messages.info(request, _(u'No diff between revision and current page detected'))
+            return self.changelist_view(request, **kwargs)
+
+        context = SekizaiContext({
+            'rendered_placerholders': rendered_placerholders,
+            'left_page_revision': left_page_revision,
+            'right_page_revision': right_page_revision,
+            'slot_html': slot_html,
+            'is_popup': True,
+            'page_revision_id': left_page_revision.pk,
+            'right_page_revision_id': right_page_revision_id,
+            'request': request,
+            'revision_list': revision_list
+        })
+        return render(request, self.diff_view_template, context=context)
 
     def batch_add(self, request, **kwargs):
         pk = kwargs.get('pk')

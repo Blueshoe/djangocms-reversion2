@@ -1,21 +1,89 @@
-{% extends 'admin/base_site.html' %}
+{% extends 'website/fullwidth.html' %}
 
 {% load i18n %}
 
 {% block content %}
 
-<button class="button" onclick="window.history.back();">{% trans 'back' %}</button>
-<br><br>
-<b>{% trans 'Placeholders with changes' %}</b>
+    <a class="button" href="{%  url 'admin:djangocms_reversion2_revert_page' page_revision_id %}">
+        {% trans 'Revert' %}
+    </a>
+
+<div id="wrapper" >
+  <div id="sidebar-wrapper" class="col-md-2">
+            <div id="sidebar">
+                <ul class="nav list-group">
+                    {% for item in revision_list %}
+                        <li>
+                            <a href="{%  url 'admin:djangocms_reversion2_diff_view' left_page_revision.page.id item.pk right_page_revision_id %}" class="list-group-item {% if item.pk == page_revision_id %} active {% endif %}">#{{ item.pk }} <br>{{ item.revision.date_created|date }}</a>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+        <div id="left-wrapper" class="col-md-5" style="border: solid lightgrey;">
+            <div id="left">{% comment %}
+                {% for slot, versions in rendered_placerholders.items %}
+                    <h3>{{ slot }}</h3>
+                            {% autoescape off %}
+                                <p>{{ versions.1 }}</p>
+                            {% endautoescape %}
+                {%  endfor %}{% endcomment %}
+
+
+                <h3>{% trans 'revision ' %} # {{ left_page_revision.id }}</h3>
+                {% for slot, html in slot_html.items %}
+                    <h3>{{ slot }}</h3>
+                        {% autoescape off %}
+                            <p>{{ html }}</p>
+                        {% endautoescape %}
+                {% endfor %}
+            </div>
+        </div>
+
+
+        <div id="right-wrapper" class="col-md-5" style="border: solid lightgrey;">
+            <div id="right">
+                {% if right_page_revision_id == 0 %}
+                    <h3>{% trans 'current revision of the page' %}</h3>
+                {% else %}
+                    <h3>{% trans 'revision ' %} # {{ page_revision_id }}</h3>
+                {% endif %}
+                {% for slot, versions in rendered_placerholders.items %}
+                    <h3>{{ slot }}</h3>
+                            {% autoescape off %}
+                                <p>{{ versions.0 }}</p>
+                            {% endautoescape %}
+                {%  endfor %}
+            </div>
+        </div>
+
+
+</div>
+
+
+{% endblock %}
+
+
+
+
+
+
+{% comment %}<br><br>
+<b>{% trans 'Placeholders with changes' %}</b>{% endcomment %}
     <!-- time pressure - really sorry -->
-    <div class="well-wrapper" style="background-color: #f5f5f5; border-radius: 10px; padding:10px;">
-        {% for slot, html in slot_html.items %}
+{#    <div class="well-wrapper" style="background-color: #f5f5f5; border-radius: 10px; padding:10px;">#}
+        {% comment %}{% for slot, html in slot_html.items %}
             <h3>{{ slot }}</h3>
-            <div>{{ html|safe }}</div>
-        {% endfor %}
-    </div>
+            {% block slot %}
+                {% autoescape off %}
+                    <p>{{ html }}</p>
+                {% endautoescape %}
+            {% endblock %}
+        {% endfor %}{% endcomment %}
+{#    </div>#}
 
 
+{% comment %}
 <b>{% trans 'Info' %}</b>
     <p>
         {% blocktrans %}
@@ -26,4 +94,4 @@
     <a class="button" href="{%  url 'admin:djangocms_reversion2_revert_page' page_revision_id %}">
         {% trans 'Revert' %}
     </a>
-{% endblock %}
+{% endcomment %}

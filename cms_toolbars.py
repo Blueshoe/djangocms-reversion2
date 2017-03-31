@@ -20,7 +20,9 @@ class Reversion2sModifier(CMSToolbar):
 
             reversion_menu.add_modal_item(
                 _('Show history'),
-                url=self.get_language_url('admin:djangocms_reversion2_pagerevision_changelist'))
+                url=self.get_language_url('admin:djangocms_reversion2_diff_view',
+                                          arguments={'left_pk': '0', 'right_pk': '0',
+                                                  'page_pk': page.id}))
 
             reversion_menu.add_break()
             reversion_menu.add_item(LinkItem(
@@ -38,9 +40,9 @@ class Reversion2sModifier(CMSToolbar):
     def request_hook(self):
         pass
 
-    def get_language_url(self, viewname):
+    def get_language_url(self, viewname, arguments={}):
         return '{url}?page_id={page_id}&language={lang}'.format(
-            url=reverse(viewname=viewname),
+            url=reverse(viewname=viewname, kwargs=arguments),
             page_id=self.request.current_page.id,
             lang=self.current_lang or ''
         )
