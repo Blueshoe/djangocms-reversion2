@@ -21,7 +21,7 @@ class Reversion2sModifier(CMSToolbar):
             reversion_menu.add_modal_item(
                 _('Show history'),
                 url=self.get_language_url('admin:djangocms_reversion2_diff_view',
-                                          arguments={'left_pk': '0', 'right_pk': '0',
+                                          arguments={'comparison_pk': '0', 'base_pk': '0',
                                                   'page_pk': page.id}))
 
             reversion_menu.add_break()

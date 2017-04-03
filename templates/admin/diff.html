@@ -1,97 +1,118 @@
-{% extends 'website/fullwidth.html' %}
+{% extends 'admin/base_site.html' %}
 
 {% load i18n %}
+{% load staticfiles %}
 
-{% block content %}
+{% block extrastyle %}
+    {{ block.super }}
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
+{% endblock %}
 
-    <a class="button" href="{%  url 'admin:djangocms_reversion2_revert_page' page_revision_id %}">
-        {% trans 'Revert' %}
-    </a>
-
-<div id="wrapper" >
-  <div id="sidebar-wrapper" class="col-md-2">
-            <div id="sidebar">
-                <ul class="nav list-group">
-                    {% for item in revision_list %}
-                        <li>
-                            <a href="{%  url 'admin:djangocms_reversion2_diff_view' left_page_revision.page.id item.pk right_page_revision_id %}" class="list-group-item {% if item.pk == page_revision_id %} active {% endif %}">#{{ item.pk }} <br>{{ item.revision.date_created|date }}</a>
-                        </li>
-                    {% endfor %}
-                </ul>
-            </div>
-        </div>
-        <div id="left-wrapper" class="col-md-5" style="border: solid lightgrey;">
-            <div id="left">{% comment %}
-                {% for slot, versions in rendered_placerholders.items %}
-                    <h3>{{ slot }}</h3>
-                            {% autoescape off %}
-                                <p>{{ versions.1 }}</p>
-                            {% endautoescape %}
-                {%  endfor %}{% endcomment %}
-
-
-                <h3>{% trans 'revision ' %} # {{ left_page_revision.id }}</h3>
-                {% for slot, html in slot_html.items %}
-                    <h3>{{ slot }}</h3>
-                        {% autoescape off %}
-                            <p>{{ html }}</p>
-                        {% endautoescape %}
-                {% endfor %}
-            </div>
-        </div>
-
-
-        <div id="right-wrapper" class="col-md-5" style="border: solid lightgrey;">
-            <div id="right">
-                {% if right_page_revision_id == 0 %}
-                    <h3>{% trans 'current revision of the page' %}</h3>
-                {% else %}
-                    <h3>{% trans 'revision ' %} # {{ page_revision_id }}</h3>
-                {% endif %}
-                {% for slot, versions in rendered_placerholders.items %}
-                    <h3>{{ slot }}</h3>
-                            {% autoescape off %}
-                                <p>{{ versions.0 }}</p>
-                            {% endautoescape %}
-                {%  endfor %}
-            </div>
-        </div>
-
-
-</div>
-
-
+{% block extrahead %}
+    {{ block.super }}
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
 {% endblock %}
 
 
+{% block content %}
+
+    <link rel="stylesheet" type="text/css" href="{% static 'css/reversion2.css' %}">
+
+    <div id="wrapper">
+        <div id="sidebar-wrapper" class="col-md-2">
+            <div id="bar">
+                <p>Revisions</p>
+                    <div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true">
+                        {% for key, value in sorted_grouped_revisions %}
+                            <div class="panel panel-default">
+                                    <div class="panel-heading" role="tab" id="reversion2_menu_item_{{ forloop.counter0 }}">
+                                        <h4 class="panel-title">
+                                            <a role="button" data-toggle="collapse" data-parent="#accordion" href="#collapse_reversion2_menu_item_{{ forloop.counter0 }}" {% if forloop.counter0 == 0 %} aria-expanded="true" {% else %} aria-expanded="false" class="collapsed" {% endif %} aria-controls="collapse_reversion2_menu_item_{{ forloop.counter0 }}">
+                                                {{ value.0.revision.date_created|date }}
+                                            </a>
+                                        </h4>
+                                    </div>
+
+                                    <div id="collapse_reversion2_menu_item_{{ forloop.counter0 }}" class="panel-collapse collapse in" role="tabpanel" aria-labelledby="reversion2_menu_item_{{ forloop.counter0 }}">
+                                        <div class="list-group">
+                                              {% for item in value %}
+                                                  <a class="list-group-item {% if item.pk == page_revision_id %} active {% endif %}" href="{% url 'admin:djangocms_reversion2_diff_view' left_page_revision.page.id right_page_revision_id item.pk %}?language={{ language }}">
+                                                        <span class="badge">#{{ item.pk }}</span>
+                                                      {{ item.revision.comment|truncatechars:9 }} <br>{{ item.revision.date_created|time }}
+                                                  </a>
+                                                  {% if item.pk == page_revision_id and page_revision_id != right_page_revision_id %}
+                                                      <a class="list-group-item" href="{% url 'admin:djangocms_reversion2_revert_page' page_revision_id %}?language={{ language }}">
+                                                          <span class="glyphicon glyphicon-share-alt" aria-hidden="true"></span> {% trans 'Revert to' %} #{{ page_revision_id }}
+                                                      </a>
+                                                  {% endif %}
+                                              {% endfor %}
+                                        </div>
+                                    </div>
+
+                            </div>
+                    {% endfor %}
+                    </div>
+            </div>
+            <a href="{% url 'admin:djangocms_reversion2_pagerevision_changelist' %}?language={{ language }}">{% trans 'Manage revisions' %}</a>
+        </div>
+        <div id="left-wrapper" class="col-md-5 reversion2_diff_slots_view">
+            <div id="left">
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <h3 style="display: inline;">{% trans 'Calculated changes of revision ' %} # {{ left_page_revision.id }}
+                        <!--<div class="reversion2_diff_rendered_view_button">-->
+                            <a class="button" style="margin-left:20px;"
+                               href="{% url 'admin:djangocms_reversion2_view_revision' left_page_revision.pk %}?toolbar_off">
+                                 <span class="glyphicon glyphicon-eye-open" aria-hidden="true"></span>
+                                    &nbsp;{% trans 'Rendered version' %} &nbsp; </a>
+                        <!--</div>-->
+                        </h3>
+                    </div>
+                    <div class="panel-body">
+                        {% for slot, html in slot_html.items %}
+                            {% if html.0 != html.1 %}
+                                <h3>{{ slot }}</h3>
+                                {% autoescape off %}
+                                    <p>{{ html }}</p>
+                                {% endautoescape %}
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
 
 
+        <div id="right-wrapper" class="col-md-5 reversion2_diff_slots_view">
+            <div id="right">
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        {% if right_page_revision_id == 0 %}
+                            <h3>{% trans 'current version of the page (not revision)' %}</h3>
+                        {% else %}
+                            <h3>{% trans 'revision ' %} # {{ page_revision_id }}</h3>
+                            <div class="reversion2_diff_rendered_view_button">
+                                <a class="button"
+                                   href="{% url 'admin:djangocms_reversion2_view_revision' right_page_revision_id %}?toolbar_off">{% trans 'View rendered version' %}</a>
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="panel-body">
+
+                        {% for slot, versions in rendered_placerholders.items %}
+                            <h3>{{ slot }}</h3>
+                            {% autoescape off %}
+                                <p>{{ versions.0 }}</p>
+                            {% endautoescape %}
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
 
 
-{% comment %}<br><br>
-<b>{% trans 'Placeholders with changes' %}</b>{% endcomment %}
-    <!-- time pressure - really sorry -->
-{#    <div class="well-wrapper" style="background-color: #f5f5f5; border-radius: 10px; padding:10px;">#}
-        {% comment %}{% for slot, html in slot_html.items %}
-            <h3>{{ slot }}</h3>
-            {% block slot %}
-                {% autoescape off %}
-                    <p>{{ html }}</p>
-                {% endautoescape %}
-            {% endblock %}
-        {% endfor %}{% endcomment %}
-{#    </div>#}
+    </div>
 
-
-{% comment %}
-<b>{% trans 'Info' %}</b>
-    <p>
-        {% blocktrans %}
-            Reverting to this page revision will apply the above changes: green sections will be inserted,
-            red sections will be deleted!
-        {% endblocktrans %}
-    </p>
-    <a class="button" href="{%  url 'admin:djangocms_reversion2_revert_page' page_revision_id %}">
-        {% trans 'Revert' %}
-    </a>
-{% endcomment %}
+{% endblock %}

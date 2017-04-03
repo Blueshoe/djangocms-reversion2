@@ -1,0 +1,22 @@
+{% extends current_template %}
+
+{% load i18n %}
+{% load staticfiles %}
+
+{% block content %}
+
+    <link rel="stylesheet" type="text/css" href="{% static 'css/reversion2.css' %}">
+
+    <div class="reversion2_diff_rendered_preview_infobar">
+        <p><button onclick="window.history.back();"> &lt; {% trans 'go back' %}</button> &nbsp; {% trans 'This is an archieved version of page' %} {{ page_revision.page.pk }} @revision #{{ page_revision.pk }}</p>
+    </div>
+
+    {% for slot, html in rendered_placeholders.items %}
+            {% block slot %}
+                {% autoescape off %}
+                    <p>{{ html.1 }}</p>
+                {% endautoescape %}
+            {% endblock %}
+    {% endfor %}
+
+{% endblock %}
