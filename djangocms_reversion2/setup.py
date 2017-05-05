@@ -24,7 +24,6 @@ CLASSIFIERS = [
 REQUIREMENTS = [
     'django>=1.8.17',
     'django-cms>=3.4.2',
-    'django-reversion>=2',
     'diff-match-patch==20110725.1',
     'django-sekizai==0.9.0'
 ]
