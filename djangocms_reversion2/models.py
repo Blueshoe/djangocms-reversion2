@@ -1,21 +1,15 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
-import cms
-from cms import api
-from cms.models.titlemodels import Title
-from cms.utils.conf import get_cms_setting
-from django.conf import settings
+from cms.models.fields import PageField
 from django.db import models
 from django.utils.encoding import python_2_unicode_compatible
-from django.utils.encoding import force_text as u
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import ugettext_lazy as _, get_language
 
-from cms.models.pagemodel import Page
+from cms.models import Page, Title
 from treebeard.mp_tree import MP_Node
 
-
-VERSION_ROOT_TITLE = '.~VERSION_ROOT_TITLE'
+from djangocms_reversion2.utils import revise_page
 
 
 @python_2_unicode_compatible
@@ -31,34 +25,26 @@ class PageVersion(MP_Node):
     active = models.BooleanField(_('Active'), default=False,
                                  help_text=_('This the active version of current draft. There can be only one such '
                                              'version per Page version tree.'))
+    # clean = models.BooleanField(_('Clean'), default=True)
 
     def get_title(self):
         return self.title or 'implement'  # TODO
 
     @classmethod
     def create_version(cls, draft, version_parent=None, comment='', title=''):
-        page_parent = cls.get_version_page_root()
-        hidden_page = Page(parent=page_parent)
-        draft._copy_attributes(hidden_page)
-        hidden_page.save()
-
-        for language in draft.get_languages():
-            draft._copy_titles(hidden_page, language, False)
-            draft._copy_contents(hidden_page, language)
+        # draft.page_versions.update(clean=False)
+        hidden_page = revise_page(draft)
+        if not version_parent and draft.page_versions.exists():
+            version_parent = draft.page_versions.get(active=True)
 
         if version_parent:
-            page_version = version_parent.add_child(draft=draft, comment=comment, title=title, active=version_parent.active)
+            page_version = version_parent.add_child(hidden_page=hidden_page, draft=draft, comment=comment, title=title,
+                                                    active=version_parent.active)
             version_parent.deactivate()
-        elif not draft.page_versions.exists():
-            page_version = PageVersion.add_root(draft=draft, comment=comment, title=title, active=True)
+        else:
+            page_version = PageVersion.add_root(hidden_page=hidden_page, draft=draft, comment=comment, title=title,
+                                                active=True)
         return page_version
-
-    @classmethod
-    def get_version_page_root(cls):
-        try:
-            return Page.objects.get(title_set__title=VERSION_ROOT_TITLE)
-        except Page.DoesNotExist:
-            return cms.api.create_page(VERSION_ROOT_TITLE, cms.constants.TEMPLATE_INHERITANCE_MAGIC, settings.LANGUAGES[0][0])
 
     def save(self, **kwargs):
         self.title = self.title or self.generate_title()
@@ -78,4 +64,6 @@ class PageVersion(MP_Node):
     deactivate.alters_data = True
 
     def __str__(self):
-        return self.title
+        if self.title:
+            return self.title
+        return self.hidden_page.get_title()
