@@ -21,13 +21,11 @@ class Reversion2sModifier(CMSToolbar):
                 url=self.get_url('admin:djangocms_reversion2_pageversion_add', query_args={'draft': page.id})
             )
 
-            # reversion_menu.add_modal_item(
-            #     _('Show history'),
-            #     url=self.get_language_url('admin:djangocms_reversion2_diff_view',
-            #                               arguments={'comparison_pk': '0', 'base_pk': '0',
-            #                                       'page_pk': page.id}))
-            #
-            # reversion_menu.add_break()
+            reversion_menu.add_modal_item(
+                _('Show history'),
+                url=self.get_url('admin:djangocms_reversion2_diff_view',
+                                 arguments={'left_pk': '0', 'right_pk': '0', 'page_pk': page.id}))
+            reversion_menu.add_break()
             # reversion_menu.add_item(LinkItem(
             #     _('Create a snapshot of all unrevised pages'),
             #     url=reverse('admin:djangocms_reversion2_pagerevision_batch_add', kwargs={'pk': page.id})))

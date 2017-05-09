@@ -20,6 +20,12 @@
 
     <link rel="stylesheet" type="text/css" href="{% static 'css/reversion2.css' %}">
 
+    <select>
+        {% for lang in all_languages %}
+            <option value="{{ lang }}" {% if forloop.counter0 == 0 %} selected="selected" {% endif %}>{{ lang }}</option>
+        {% endfor %}
+    </select>
+
     <div id="wrapper">
         <div id="sidebar-wrapper" class="col-md-2">
             <div id="bar">
@@ -30,7 +36,7 @@
                                     <div class="panel-heading" role="tab" id="reversion2_menu_item_{{ forloop.counter0 }}">
                                         <h4 class="panel-title">
                                             <a role="button" data-toggle="collapse" data-parent="#accordion" href="#collapse_reversion2_menu_item_{{ forloop.counter0 }}" {% if forloop.counter0 == 0 %} aria-expanded="true" {% else %} aria-expanded="false" class="collapsed" {% endif %} aria-controls="collapse_reversion2_menu_item_{{ forloop.counter0 }}">
-                                                {{ value.0.revision.date_created|date }}
+                                                {{ value.0.hidden_page.changed_date|date }}
                                             </a>
                                         </h4>
                                     </div>
@@ -38,13 +44,13 @@
                                     <div id="collapse_reversion2_menu_item_{{ forloop.counter0 }}" class="panel-collapse collapse in" role="tabpanel" aria-labelledby="reversion2_menu_item_{{ forloop.counter0 }}">
                                         <div class="list-group">
                                               {% for item in value %}
-                                                  <a class="list-group-item {% if item.pk == page_revision_id %} active {% endif %}" href="{% url 'admin:djangocms_reversion2_diff_view' left_page_revision.page.id right_page_revision_id item.pk %}?language={{ language }}">
+                                                  <a class="list-group-item {% if item.pk == left_page.pk %} active {% endif %}" href="{% url 'admin:djangocms_reversion2_diff_view' item.draft.pk item.pk right_page.pk %}?language={{ language }}">
                                                         <span class="badge">#{{ item.pk }}</span>
-                                                      {{ item.revision.comment|truncatechars:9 }} <br>{{ item.revision.date_created|time }}
+                                                      {{ item.comment|truncatechars:9 }} <br>{{ item.hidden_page.changed_date|time }}
                                                   </a>
-                                                  {% if item.pk == page_revision_id and page_revision_id != right_page_revision_id %}
-                                                      <a class="list-group-item" href="{% url 'admin:djangocms_reversion2_revert_page' page_revision_id %}?language={{ language }}">
-                                                          <span class="glyphicon glyphicon-share-alt" aria-hidden="true"></span> {% trans 'Revert to' %} #{{ page_revision_id }}
+                                                  {% if item.hidden_page.pk == left_page.pk and item.hidden_page.pk != right_page.pk %}
+                                                      <a class="list-group-item" href="{% url 'admin:djangocms_reversion2_revert_page' left_page.pk %}?language={{ language }}">
+                                                          <span class="glyphicon glyphicon-share-alt" aria-hidden="true"></span> {% trans 'Revert to' %} #{{ left_page.pk }}
                                                       </a>
                                                   {% endif %}
                                               {% endfor %}
@@ -55,62 +61,60 @@
                     {% endfor %}
                     </div>
             </div>
-            <a href="{% url 'admin:djangocms_reversion2_pagerevision_changelist' %}?language={{ language }}">{% trans 'Manage revisions' %}</a>
+
         </div>
-        <div id="left-wrapper" class="col-md-5 reversion2_diff_slots_view">
-            <div id="left">
-                <div class="panel panel-default">
-                    <div class="panel-heading">
-                        <h3 style="display: inline;">{% trans 'Calculated changes of revision ' %} # {{ left_page_revision.id }}
-                        <!--<div class="reversion2_diff_rendered_view_button">-->
-                            <a class="button" style="margin-left:20px;"
-                               href="{% url 'admin:djangocms_reversion2_view_revision' left_page_revision.pk %}?toolbar_off">
-                                 <span class="glyphicon glyphicon-eye-open" aria-hidden="true"></span>
-                                    &nbsp;{% trans 'Rendered version' %} &nbsp; </a>
-                        <!--</div>-->
-                        </h3>
-                    </div>
-                    <div class="panel-body">
-                        {% for slot, html in slot_html.items %}
-                            {% if html.0 != html.1 %}
-                                <h3>{{ slot }}</h3>
-                                {% autoescape off %}
-                                    <p>{{ html }}</p>
-                                {% endautoescape %}
-                            {% endif %}
-                        {% endfor %}
+
+        <div id="comparison_wrapper" class="col-md-10 reversion2_diff_slots_view">
+            <div id="title_wrapper" class="col-md-12">
+                <div id="left-wrapper" class="col-md-6 reversion2_diff_slots_view">
+                <div id="left">
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                            <h3 style="display: inline;">{% trans 'Calculated changes of revision ' %} # {{ left_page.pk }}
+                                <br>
+                            <!--<div class="reversion2_diff_rendered_view_button">-->
+                                <a class="button" style="margin-left:20px;"
+                                   href=" {{  left_page.get_absolute_url  }}?toolbar_off">
+                                     <span class="glyphicon glyphicon-eye-open" aria-hidden="true"></span>
+                                        &nbsp;{% trans 'Rendered version' %} &nbsp; </a>
+                            <!--</div>-->
+                            </h3>
+                        </div>
+                        <div class="panel-body">
+                            <p>XXX</p>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
-
-
-        <div id="right-wrapper" class="col-md-5 reversion2_diff_slots_view">
+                <div id="right-wrapper" class="col-md-6 reversion2_diff_slots_view">
             <div id="right">
                 <div class="panel panel-default">
                     <div class="panel-heading">
-                        {% if right_page_revision_id == 0 %}
+                        {% if right_page.pk == page.pk %}
                             <h3>{% trans 'current version of the page (not revision)' %}</h3>
                         {% else %}
-                            <h3>{% trans 'revision ' %} # {{ page_revision_id }}</h3>
+                            <h3>{% trans 'revision ' %} # {{ right_page.pk }}</h3>
                             <div class="reversion2_diff_rendered_view_button">
                                 <a class="button"
-                                   href="{% url 'admin:djangocms_reversion2_view_revision' right_page_revision_id %}?toolbar_off">{% trans 'View rendered version' %}</a>
+                                   href="{{  right_page.get_absolute_url  }}?toolbar_off">{% trans 'View rendered version' %}</a>
                             </div>
                         {% endif %}
                     </div>
                     <div class="panel-body">
-
-                        {% for slot, versions in rendered_placerholders.items %}
-                            <h3>{{ slot }}</h3>
-                            {% autoescape off %}
-                                <p>{{ versions.0 }}</p>
-                            {% endautoescape %}
-                        {% endfor %}
+                        <p>XXX</p>
                     </div>
                 </div>
             </div>
         </div>
+            </div>
+            <div class="panel panel-default col-md-12">
+              <div class="panel-heading">Placeholder</div>
+              <div class="panel-body">
+                Diffs for placeholder #1
+              </div>
+            </div>
+        </div>
+
 
 
     </div>

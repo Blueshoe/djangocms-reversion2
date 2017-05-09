@@ -88,6 +88,14 @@ class PageVersionAdmin(admin.ModelAdmin):
     #     ]
     #     return admin_urls + urls
 
+    def get_urls(self):
+        urls = super(PageVersionAdmin, self).get_urls()
+        admin_urls = [
+            url(r'^diff-view/page/(?P<page_pk>\d+)/left/(?P<left_pk>\d+)/right/(?P<right_pk>\d+)$',
+                self.diff_view, name='djangocms_reversion2_diff_view'),
+        ]
+        return admin_urls + urls
+
     def get_language_url(self, viewname, arguments={}):
         return '{url}?page_id={page_id}&language={lang}'.format(
             url=reverse(viewname=viewname, kwargs=arguments),
@@ -95,156 +103,75 @@ class PageVersionAdmin(admin.ModelAdmin):
             lang=self.current_lang or ''
         )
 
-    # def view_revision(self, request, **kwargs):
-    #     # render a page for a popup in an old revision
-    #     revision_pk = kwargs.pop('revision_pk')
-    #     page_revision = PageRevision.objects.get(id=revision_pk)
-    #     # get the rendered_placeholders which are persisted as html strings
-    #     prc = PageRevisionComparator(page_revision, request=request)
-    #     rendered_placeholders = prc.rendered_placeholders
-    #
-    #     context = SekizaiContext({
-    #         'current_template': page_revision.page.get_template(),
-    #         'rendered_placeholders': rendered_placeholders,
-    #         'page_revision': page_revision,
-    #         'is_popup': True,
-    #         'request': request,
-    #     })
-    #     return render(request, self.view_revision_template, context=context)
-    #
-    # def download_audit_trail(self, request):
-    #     # show view where the user can select the desired download params
-    #     # self.set_page_lang(request)
-    #     return TemplateResponse(request, 'admin/download_audit_trail.html',
-    #                             {'p_id': request.GET.get('page_id'), 'lang': request.GET.get('language')}
-    #                             )
 
-    # def download_audit_trail_xlsx(self, request, **kwargs):
-    #     # download the audit trail as xlsx
-    #     # self.set_page_lang(request)  , language=get_language_from_request(request)
-    #     page_id = request.GET.get('page_id')
-    #     language = request.GET.get('language')
-    #     request.current_page = Page.objects.get(id=page_id)
-    #     report = exporter.ReportXLSXFormatter()
-    #     return report.get_download_response(request, self.get_queryset(request), language=language)
 
-    # def revert(self, r        equest, ** kwargs):
-        #     # revert page to revision
-        #     pk = kwargs.pop('pk')
-        #     language = request.GET.get('language')
-        #     page_revision = PageRevision.objects.get(id=pk)
-        #
-        #     if not revert_page(page_revision, request):
-        #         messages.info(request, u'Page is already in this revision!')
-        #         prev = request.META.get('HTTP_REFERER')
-        #         if prev:
-        #             return redirect(prev)
-        #         return self.changelist_view(request, **kwargs)
-        #
-        #     # create a new revision if reverted to keep history correct
-        #     # therefore mark a placeholder as dirty
-        #     # TODO: in case of no placeholder?
-        #     # page_revision.page.placeholders.first().mark_as_dirty(language)
-        #     # creator = PageRevisionCreator(page_revision.page.pk, language, request, request.user,
-        #     # ugettext(u'Restored') + ' ' + '#' + str(page_revision.pk))
-        #     # creator.create_page_revision()
-        #
-        #
-        # messages.info(request, _(u'You have succesfully reverted to {rev}').format(rev=page_revision))
-        # return self.render_close_frame()
+    def diff_view(self, request, **kwargs):
+        # view which shows a revision on the left and one on the right
+        # if the right revision has value zero: the current page is used!
+        # -> page id is only neccessary in the utter case
+        # if the comparison_pk is zero: the latest version is used
+        # comparison_pk and base_pk are primary keys for *pages*!
 
-    # def diff(self, request, **kwargs):
-    #     # deprecated diff view (used in the PageRevisionForm)
-    #     # deprecated because it was only able to show an html code difference
-    #     # which compares a revision to a page
-    #     # -> REPLACED BY diff-view
-    #     pk = kwargs.pop('pk')
-    #     page_revision = PageRevision.objects.get(id=pk)
-    #
-    #     prc = PageRevisionComparator(page_revision, request=request)
-    #     slot_html = {slot: revert_escape(html) for slot, html in prc.slot_html.items() if slot in prc.changed_slots}
-    #
-    #     if not slot_html:
-    #         messages.info(request, _(u'No diff between revision and current page detected'))
-    #         return self.changelist_view(request, **kwargs)
-    #
-    #     context = SekizaiContext({
-    #         'title': _(u'Diff current page and page revision #{pk}').format(pk=pk),
-    #         'slot_html': slot_html,
-    #         'is_popup': True,
-    #         'page_revision_id': page_revision.pk,
-    #         'request': request
-    #     })
-    #     return render(request, self.diff_template, context=context)
+        # also called left_pk
+        left_pk = kwargs.pop('left_pk')
+        # also called right_pk
+        right_pk = kwargs.pop('right_pk')
+        page_pk = kwargs.pop('page_pk')
 
-    # def diff_view(self, request, **kwargs):
-    #     # view which shows a revision on the left and one on the right
-    #     # if the right revision has value zero: the current page is used!
-    #     # -> page id is only neccessary in the utter case
-    #
-    #     # also called left_pk
-    #     comparison_pk = kwargs.pop('comparison_pk')
-    #     # also called right_pk
-    #     base_pk = kwargs.pop('base_pk')
-    #     page_pk = kwargs.pop('page_pk')
-    #
-    #     language = request.GET.get('language', 'en')
-    #
-    #     # if no page and no right revision -> 404
-    #     if int(comparison_pk) == 0 and int(base_pk) == 0:
-    #         page = get_object_or_404(Page, pk=page_pk)
-    #         comparison_pk = PageRevision.objects.filter(page=page, language=language)
-    #         if comparison_pk.count() > 0:
-    #             comparison_pk = comparison_pk.first().pk
-    #             base_pk = 0
-    #         else:
-    #             messages.info(request, _(u'There are no snapshots for this page'))
-    #             return self.render_close_frame()
-    #
-    #     left_page_revision = PageRevision.objects.get(id=comparison_pk)
-    #
-    #     # fetch current version of page in order to use it as the right_revision
-    #     if int(base_pk) == 0:
-    #         prc = PageRevisionComparator(left_page_revision, request=request)
-    #         right_page_revision = None
-    #         right_page_revision_id = 0
-    #     else:
-    #         right_page_revision = PageRevision.objects.get(id=base_pk)
-    #         prc = PageRevisionComparator(left_page_revision, page_revision2=right_page_revision)
-    #         right_page_revision_id = right_page_revision.pk
-    #
-    #     # get the serialized html strings and revert the escaped html chars
-    #     rendered_placerholders = prc.rendered_placeholders
-    #     slot_html = {slot: revert_escape(html) for slot, html in prc.slot_html.items() if slot in prc.changed_slots}
-    #
-    #     # list of page's revisions to show as the left sidebar
-    #     revision_list = PageRevision.objects.filter(page=prc.page, language=language)
-    #     # group the revisions by date
-    #     grouped_revisions = {}  # defaultdict(default_factory=list)
-    #     for rev in revision_list.iterator():
-    #         key = rev.revision.date_created.strftime("%Y-%m-%d")
-    #         if key not in grouped_revisions.keys():
-    #             grouped_revisions[key] = []
-    #         grouped_revisions[key].append(rev)
-    #     sorted_grouped_revisions = sorted(grouped_revisions.iteritems(), key=lambda (k, v): k, reverse=True)
-    #
-    #     if not slot_html:
-    #         messages.info(request, _(u'No diff between revision and current page detected'))
-    #         return self.changelist_view(request, **kwargs)
-    #
-    #     context = SekizaiContext({
-    #         'rendered_placerholders': rendered_placerholders,
-    #         'left_page_revision': left_page_revision,
-    #         'right_page_revision': right_page_revision,
-    #         'slot_html': slot_html,
-    #         'is_popup': True,
-    #         'page_revision_id': left_page_revision.pk,
-    #         'right_page_revision_id': right_page_revision_id,
-    #         'request': request,
-    #         'sorted_grouped_revisions': sorted_grouped_revisions,
-    #         'language': language
-    #     })
-    #     return render(request, self.diff_view_template, context=context)
+        # get the draft we are talking about
+        page_draft = get_object_or_404(Page, pk=page_pk).get_draft_object()
+
+        # the right panel has id=0
+        # -> use the draft of the page
+        # -> else: fetch the page
+        if int(right_pk) == 0:
+            right_page = page_draft
+        else:
+            right_page = Page.objects.get(pk=right_pk)
+
+        # the left panel has id=0
+        # -> use the latest PageVersion draft of the page
+        # -> else: fetch the page
+        if int(left_pk) == 0:
+            page_draft_versions = PageVersion.objects.filter(draft=page_draft).order_by('-hidden_page__changed_date')[:1]
+
+            if page_draft_versions.count() > 0:
+                left_page = page_draft_versions.first()
+            else:
+                messages.info(request, _(u'There are no snapshots for this page'))
+                return self.render_close_frame()
+        else:
+            left_page = Page.objects.get(pk=left_pk)
+
+        # list of page's revisions to show as the left sidebar
+        revision_list = PageVersion.objects.filter(draft=page_draft)
+        # group the revisions by date
+        grouped_revisions = {}  # defaultdict(default_factory=list)
+        for rev in revision_list.iterator():
+            key = rev.hidden_page.changed_date.strftime("%Y-%m-%d")
+            if key not in grouped_revisions.keys():
+                grouped_revisions[key] = []
+            grouped_revisions[key].append(rev)
+        sorted_grouped_revisions = sorted(grouped_revisions.iteritems(), key=lambda (k, v): k, reverse=True)
+
+        # differences between the placeholders
+
+        # if not slot_html:
+        #     messages.info(request, _(u'No diff between revision and current page detected'))
+        #     return self.changelist_view(request, **kwargs)
+
+        context = SekizaiContext({
+            'left_page': left_page,
+            'right_page': right_page,
+            'is_popup': True,
+            'page': page_draft.pk,
+            'active_left_page_version_pk': left_page.pk,
+            'request': request,
+            'sorted_grouped_revisions': sorted_grouped_revisions,
+            'active_language': kwargs.get('language', 'no language found'),
+            'all_languages': page_draft.languages.split(',')
+        })
+        return render(request, self.diff_view_template, context=context)
 
     # def batch_add(self, request, **kwargs):
     #     pk = kwargs.get('pk')
