@@ -25,6 +25,7 @@ from django.template.response import TemplateResponse
 from django.utils.translation import ugettext_lazy as _, ugettext
 from sekizai.context import SekizaiContext
 
+from djangocms_reversion2.diff import create_placeholder_contents
 from djangocms_reversion2.forms import PageVersionForm
 from djangocms_reversion2.models import PageVersion
 
@@ -34,16 +35,7 @@ BIN_PAGE_LANGUAGE = 'de'
 BIN_BUCKET_NAMING = BIN_NAMING_PREFIX + 'Eimer-%d.%m.%Y'
 
 
-def revert_escape(txt, transform=True):
-    """
-    transform replaces the '<ins ' or '<del ' with '<div '
-    :type transform: bool
-    """
-    html = txt.replace("&amp;", "&").replace("&lt;", "<").replace("&gt;", ">").replace("&para;<br>", "\n")
-    if transform:
-        html = html.replace('<ins ', '<div ').replace('<del ', '<div ').replace('</ins>', '</div>')\
-            .replace('</del>', '</div>')
-    return html
+
 
 
 class PageVersionAdmin(admin.ModelAdmin):
@@ -158,6 +150,9 @@ class PageVersionAdmin(admin.ModelAdmin):
         right_pk = kwargs.pop('right_pk')
         page_pk = kwargs.pop('page_pk')
 
+        left = 'page'
+        right = 'page'
+
         # get the draft we are talking about
         page_draft = get_object_or_404(Page, pk=page_pk).get_draft_object()
 
@@ -167,7 +162,8 @@ class PageVersionAdmin(admin.ModelAdmin):
         if int(right_pk) == 0:
             right_page = page_draft
         else:
-            right_page = Page.objects.get(pk=right_pk)
+            right = 'pageVersion'
+            right_page = PageVersion.objects.get(pk=right_pk)
 
         # the left panel has id=0
         # -> use the latest PageVersion draft of the page
@@ -177,11 +173,13 @@ class PageVersionAdmin(admin.ModelAdmin):
 
             if page_draft_versions.count() > 0:
                 left_page = page_draft_versions.first()
+                left = 'pageVersion'
             else:
                 messages.info(request, _(u'There are no snapshots for this page'))
                 return self.render_close_frame()
         else:
-            left_page = Page.objects.get(pk=left_pk)
+            left = 'pageVersion'
+            left_page = PageVersion.objects.get(pk=left_pk)
 
         # list of page's revisions to show as the left sidebar
         revision_list = PageVersion.objects.filter(draft=page_draft)
@@ -194,13 +192,27 @@ class PageVersionAdmin(admin.ModelAdmin):
             grouped_revisions[key].append(rev)
         sorted_grouped_revisions = sorted(grouped_revisions.iteritems(), key=lambda (k, v): k, reverse=True)
 
+        language = kwargs.get('language', page_draft.languages.split(',')[0])
+
         # differences between the placeholders
+        if left is 'pageVersion':
+            l_page = left_page.hidden_page
+        else:
+            l_page = left_page
+        if right is 'pageVersion':
+            r_page = right_page.hidden_page
+        else:
+            r_page = right_page
+
+        diffs = create_placeholder_contents(l_page, r_page, request, language)
 
         # if not slot_html:
         #     messages.info(request, _(u'No diff between revision and current page detected'))
         #     return self.changelist_view(request, **kwargs)
 
         context = SekizaiContext({
+            'left': left,
+            'right': right,
             'left_page': left_page,
             'right_page': right_page,
             'is_popup': True,
@@ -208,8 +220,9 @@ class PageVersionAdmin(admin.ModelAdmin):
             'active_left_page_version_pk': left_page.pk,
             'request': request,
             'sorted_grouped_revisions': sorted_grouped_revisions,
-            'active_language': kwargs.get('language', 'no language found'),
-            'all_languages': page_draft.languages.split(',')
+            'active_language': language,
+            'all_languages': page_draft.languages.split(','),
+            'diffs': diffs
         })
         return render(request, self.diff_view_template, context=context)
 
