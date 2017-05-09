@@ -136,10 +136,6 @@ target/
 .DS_Store
 
 ### Django ###
-*.log
-*.pot
-*.pyc
-__pycache__/
 
 ### Vagrant ###
 .vagrant/
@@ -149,5 +145,5 @@ local_settings.py
 *.sqlite
 
 ### Test Project #######
-example/
+# example/
 *.db
