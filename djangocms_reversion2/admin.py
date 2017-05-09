@@ -86,9 +86,9 @@ class PageVersionAdmin(admin.ModelAdmin):
     def get_urls(self):
         urls = super(PageVersionAdmin, self).get_urls()
         admin_urls = [
-            url(r'^diff-view/page/(?P<page_pk>\d+)/left/(?P<left_pk>\d+)/right/(?P<right_pk>\d+)$',
+            url(r'^diff-view/page/(?P<page_pk>\d+)/left/(?P<left_pk>\d+)/right/(?P<right_pk>\d+)/$',
                 self.diff_view, name='djangocms_reversion2_diff_view'),
-            url(r'^revert/(?P<pk>\d+)$', self.revert, name='djangocms_reversion2_revert_page')
+            url(r'^revert/page/(?P<page_pk>\d+)/to/(?P<version_pk>\d+)$', self.revert, name='djangocms_reversion2_revert_page')
         ]
         return admin_urls + urls
 
@@ -103,6 +103,11 @@ class PageVersionAdmin(admin.ModelAdmin):
 
 
     def revert(self, request, ** kwargs):
+        page_pk = kwargs.get('page_pk')
+        to_version_pk = kwargs.get('version_pk')
+        return HttpResponse("Not Implemented yet")
+        # return self.changelist_view(request)
+        # return self.changelist_view(request, **kwargs)
         #     # revert page to revision
         #     pk = kwargs.pop('pk')
         #     language = request.GET.get('language')
@@ -113,7 +118,7 @@ class PageVersionAdmin(admin.ModelAdmin):
         #         prev = request.META.get('HTTP_REFERER')
         #         if prev:
         #             return redirect(prev)
-        return self.changelist_view(request, **kwargs)
+
         #
         #     # create a new revision if reverted to keep history correct
         #     # therefore mark a placeholder as dirty
@@ -192,7 +197,12 @@ class PageVersionAdmin(admin.ModelAdmin):
             grouped_revisions[key].append(rev)
         sorted_grouped_revisions = sorted(grouped_revisions.iteritems(), key=lambda (k, v): k, reverse=True)
 
-        language = kwargs.get('language', page_draft.languages.split(',')[0])
+        language = request.GET.get('custom_language')
+
+        if not language:
+            language = get_language_from_request(request, current_page=page_draft)
+        if not language:
+            language = page_draft.languages.split(',')[0]
 
         # differences between the placeholders
         if left is 'pageVersion':
@@ -221,11 +231,11 @@ class PageVersionAdmin(admin.ModelAdmin):
             'request': request,
             'sorted_grouped_revisions': sorted_grouped_revisions,
             'active_language': language,
+            'custom_language': language,
             'all_languages': page_draft.languages.split(','),
             'diffs': diffs
         })
         return render(request, self.diff_view_template, context=context)
-
 
     def add_view(self, request, form_url='', extra_context=None):
         # self.page = get_object_or_404(Page, pk=page_id)

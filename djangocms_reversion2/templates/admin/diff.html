@@ -19,12 +19,13 @@
 {% block content %}
 
     <link rel="stylesheet" type="text/css" href="{% static 'css/reversion2.css' %}">
-
-    <select>
-        {% for lang in all_languages %}
-            <option value="{{ lang }}" {% if forloop.counter0 == 0 %} selected="selected" {% endif %}>{{ lang }}</option>
-        {% endfor %}
-    </select>
+    <form method="get" action=".">
+        <select name="custom_language" onchange="this.getRootNode().location.href='{% url 'admin:djangocms_reversion2_diff_view' page left_page.pk 0 %}?custom_language=' + this.value;">
+            {% for lang in all_languages %}
+                <option value="{{ lang }}" {% if lang == custom_language %} selected="selected" {% endif %}>{{ lang }}</option>
+            {% endfor %}
+        </select>
+    </form>
 
     <div id="wrapper">
         <div id="sidebar-wrapper" class="col-md-2">
@@ -44,12 +45,12 @@
                                     <div id="collapse_reversion2_menu_item_{{ forloop.counter0 }}" class="panel-collapse collapse in" role="tabpanel" aria-labelledby="reversion2_menu_item_{{ forloop.counter0 }}">
                                         <div class="list-group">
                                               {% for item in value %}
-                                                  <a class="list-group-item {% if item.pk == left_page.pk %} active {% endif %}" href="{% url 'admin:djangocms_reversion2_diff_view' item.draft.pk item.pk 0 %}?language={{ language }}">
+                                                  <a class="list-group-item {% if item.pk == left_page.pk %} active {% endif %}" href="{% url 'admin:djangocms_reversion2_diff_view' item.draft.pk item.pk 0 %}?custom_language={{ custom_language }}">
                                                         <span class="badge">#{{ item.pk }}</span>
                                                       {{ item.comment|truncatechars:9 }} <br>{{ item.hidden_page.changed_date|time }}
                                                   </a>
-                                                  {% if item.hidden_page.pk == left_page.pk and item.hidden_page.pk != right_page.pk %}
-                                                      <a class="list-group-item" href="{% url 'admin:djangocms_reversion2_revert_page' left_page.pk %}?language={{ language }}">
+                                                  {% if item.pk == left_page.pk and item.hidden_page.pk != right_page.pk %}
+                                                      <a class="list-group-item" href="{% url 'admin:djangocms_reversion2_revert_page' page left_page.pk %}?custom_language={{ custom_language }}">
                                                           <span class="glyphicon glyphicon-share-alt" aria-hidden="true"></span> {% trans 'Revert to' %} #{{ left_page.pk }}
                                                       </a>
                                                   {% endif %}
