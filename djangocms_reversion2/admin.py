@@ -48,7 +48,10 @@ def revert_escape(txt, transform=True):
 
 class PageVersionAdmin(admin.ModelAdmin):
     form = PageVersionForm
-    list_display = ('__str__', 'date', 'user', 'comment', 'revert_link', 'diff_link')
+    list_display = (
+        '__str__', 'date', 'user', 'comment', 'revert_link',
+        # 'diff_link'
+    )
     list_display_links = None
     diff_template = 'admin/diff_old.html'
     diff_view_template = 'admin/diff.html'
@@ -93,6 +96,7 @@ class PageVersionAdmin(admin.ModelAdmin):
         admin_urls = [
             url(r'^diff-view/page/(?P<page_pk>\d+)/left/(?P<left_pk>\d+)/right/(?P<right_pk>\d+)$',
                 self.diff_view, name='djangocms_reversion2_diff_view'),
+            url(r'^revert/(?P<pk>\d+)$', self.revert, name='djangocms_reversion2_revert_page')
         ]
         return admin_urls + urls
 
@@ -104,6 +108,42 @@ class PageVersionAdmin(admin.ModelAdmin):
         )
 
 
+
+
+    def revert(self, request, ** kwargs):
+        #     # revert page to revision
+        #     pk = kwargs.pop('pk')
+        #     language = request.GET.get('language')
+        #     page_revision = PageRevision.objects.get(id=pk)
+        #
+        #     if not revert_page(page_revision, request):
+        #         messages.info(request, u'Page is already in this revision!')
+        #         prev = request.META.get('HTTP_REFERER')
+        #         if prev:
+        #             return redirect(prev)
+        return self.changelist_view(request, **kwargs)
+        #
+        #     # create a new revision if reverted to keep history correct
+        #     # therefore mark a placeholder as dirty
+        #     # TODO: in case of no placeholder?
+        #     # page_revision.page.placeholders.first().mark_as_dirty(language)
+        #     # creator = PageRevisionCreator(page_revision.page.pk, language, request, request.user,
+        #     # ugettext(u'Restored') + ' ' + '#' + str(page_revision.pk))
+        #     # creator.create_page_revision()
+        #
+        #
+        # messages.info(request, _(u'You have succesfully reverted to {rev}').format(rev=page_revision))
+        # return self.render_close_frame()
+    # def batch_add(self, request, **kwargs):
+    #     pk = kwargs.get('pk')
+    #     language = kwargs.get('language')
+    #     languages = [language] if language else None
+    #     creator = PageRevisionBatchCreator(request, languages=languages, user=request.user)
+    #     page_revisions = creator.create_page_revisions()
+    #     num = len(page_revisions)
+    #     messages.info(request, _(u'{num} unversioned pages have been versioned.').format(num=num))
+    #     page = Page.objects.get(pk=pk)
+    #     return redirect(page.get_absolute_url(language), permanent=True)
 
     def diff_view(self, request, **kwargs):
         # view which shows a revision on the left and one on the right
@@ -173,16 +213,6 @@ class PageVersionAdmin(admin.ModelAdmin):
         })
         return render(request, self.diff_view_template, context=context)
 
-    # def batch_add(self, request, **kwargs):
-    #     pk = kwargs.get('pk')
-    #     language = kwargs.get('language')
-    #     languages = [language] if language else None
-    #     creator = PageRevisionBatchCreator(request, languages=languages, user=request.user)
-    #     page_revisions = creator.create_page_revisions()
-    #     num = len(page_revisions)
-    #     messages.info(request, _(u'{num} unversioned pages have been versioned.').format(num=num))
-    #     page = Page.objects.get(pk=pk)
-    #     return redirect(page.get_absolute_url(language), permanent=True)
 
     def add_view(self, request, form_url='', extra_context=None):
         # self.page = get_object_or_404(Page, pk=page_id)
@@ -243,24 +273,24 @@ class PageVersionAdmin(admin.ModelAdmin):
     revert_link.short_description = _('Revert')
     revert_link.allow_tags = True
 
-    def diff_link(self, obj):
-        return '<a href="{url}" class="btn btn-primary">{label}</a>'.format(
-            url=reverse('admin:djangocms_reversion2_diff', kwargs={'pk': obj.id}),
-            label=_('View diff')
-        )
-    diff_link.short_description = _('Diff')
-    diff_link.allow_tags = True
+    # def diff_link(self, obj):
+    #     return '<a href="{url}" class="btn btn-primary">{label}</a>'.format(
+    #         url=reverse('admin:djangocms_reversion2_diff', kwargs={'pk': obj.id}),
+    #         label=_('View diff')
+    #     )
+    # diff_link.short_description = _('Diff')
+    # diff_link.allow_tags = True
 
     def comment(self, obj):
-        return obj.revision.comment
+        return obj.comment
     comment.short_description = _('Comment')
 
     def user(self, obj):
-        return obj.revision.user
+        return obj.username
     user.short_description = _('By')
 
     def date(self, obj):
-        return obj.revision.date_created.strftime('%d.%m.%Y %H:%M')
+        return obj.hidden_page.changed_date.strftime('%d.%m.%Y %H:%M')
     date.short_description = _('Date')
 
 admin.site.register(PageVersion, PageVersionAdmin)

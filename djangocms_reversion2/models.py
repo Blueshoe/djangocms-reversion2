@@ -57,6 +57,10 @@ class PageVersion(MP_Node):
     def generate_comment(self):
         return ''
 
+    @property
+    def username(self):
+        return self.hidden_page.changed_by
+
     def deactivate(self, commit=True):
         self.active = False
         if commit:
