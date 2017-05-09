@@ -25,12 +25,17 @@
                 <option value="{{ lang }}" {% if lang == custom_language %} selected="selected" {% endif %}>{{ lang }}</option>
             {% endfor %}
         </select>
+        <select>
+            <option value="" selected>Please choose a branch</option>
+        </select>
+
+        <br><br>
+
     </form>
 
-    <div id="wrapper">
+    <div id="wrapper" class="row">
         <div id="sidebar-wrapper" class="col-md-2">
             <div id="bar">
-                <p>Revisions</p>
                     <div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true">
                         {% for key, value in sorted_grouped_revisions %}
                             <div class="panel panel-default">
@@ -45,9 +50,9 @@
                                     <div id="collapse_reversion2_menu_item_{{ forloop.counter0 }}" class="panel-collapse collapse in" role="tabpanel" aria-labelledby="reversion2_menu_item_{{ forloop.counter0 }}">
                                         <div class="list-group">
                                               {% for item in value %}
-                                                  <a class="list-group-item {% if item.pk == left_page.pk %} active {% endif %}" href="{% url 'admin:djangocms_reversion2_diff_view' item.draft.pk item.pk 0 %}?custom_language={{ custom_language }}">
+                                                  <a class="list-group-item {% if item.pk == left_page.pk %} active {% endif %}" href="{% url 'admin:djangocms_reversion2_diff_view' item.draft.pk item.pk 0 %}?custom_language={{ custom_language }}" title="{{ item.comment }}">
                                                         <span class="badge">#{{ item.pk }}</span>
-                                                      {{ item.comment|truncatechars:9 }} <br>{{ item.hidden_page.changed_date|time }}
+                                                      {{ item.title|truncatechars:9 }} <br>{{ item.hidden_page.changed_date|time }}
                                                   </a>
                                                   {% if item.pk == left_page.pk and item.hidden_page.pk != right_page.pk %}
                                                       <a class="list-group-item" href="{% url 'admin:djangocms_reversion2_revert_page' page left_page.pk %}?custom_language={{ custom_language }}">
@@ -62,55 +67,61 @@
                     {% endfor %}
                     </div>
             </div>
-
         </div>
 
         <div id="comparison_wrapper" class="col-md-10 reversion2_diff_slots_view">
-            <div id="title_wrapper" class="col-md-12">
+            <div id="title_wrapper" class="row">
                 <div id="left-wrapper" class="col-md-6 reversion2_diff_slots_view">
                 <div id="left">
                     <div class="panel panel-default">
                         <div class="panel-heading">
-                            <h3 style="display: inline;">{% trans 'Calculated changes of revision ' %} # {{ left_page.pk }}
-                                <br>
-                            <!--<div class="reversion2_diff_rendered_view_button">-->
-                                <a class="button" style="margin-left:20px;"
-                                   href=" {{  left_page.get_absolute_url  }}?toolbar_off">
+                            <h3 style="display: inline;">{% trans 'Revision ' %} # {{ left_page.pk }}</h3>
+                            <a class="cms-btn-action pull-right" href=" {{  left_page.get_absolute_url  }}?toolbar_off">
                                      <span class="glyphicon glyphicon-eye-open" aria-hidden="true"></span>
-                                        &nbsp;{% trans 'Rendered version' %} &nbsp; </a>
-                            <!--</div>-->
-                            </h3>
+                                        &nbsp;{% trans 'rendered version' %} &nbsp; </a>
                         </div>
                         <div class="panel-body">
-                            <p>XXX</p>
+                            {% if left == 'pageVersion' %}
+                                <p>Last editor: {{ left_page.hidden_page.changed_by }}</p>
+                            {% else %}
+                                <p>Last editor: {{ left_page.changed_by }}</p>
+                            {% endif %}
                         </div>
                     </div>
                 </div>
             </div>
                 <div id="right-wrapper" class="col-md-6 reversion2_diff_slots_view">
             <div id="right">
-                <div class="panel panel-default">
+                <div class="panel panel-success">
                     <div class="panel-heading">
                         {% if right_page.pk == page.pk %}
-                            <h3>{% trans 'current version of the page (not revision)' %}</h3>
+                            <h3 style="display: inline;">{% trans 'current version of the page (not revision)' %}</h3>
                         {% else %}
-                            <h3>{% trans 'revision ' %} # {{ right_page.pk }}</h3>
-                            <div class="reversion2_diff_rendered_view_button">
-                                <a class="button"
-                                   href="{{  right_page.get_absolute_url  }}?toolbar_off">{% trans 'View rendered version' %}</a>
-                            </div>
+                            <h3 style="display: inline;">{% trans 'Revision ' %} # {{ right_page.pk }}</h3>
+                            <a class="cms-btn-action pull-right" href="{{  right_page.get_absolute_url  }}?toolbar_off">
+                                    <span class="glyphicon glyphicon-eye-open" aria-hidden="true"></span>
+                                    {% trans 'rendered version' %}
+                            </a>
+
                         {% endif %}
                     </div>
                     <div class="panel-body">
-                        <p>XXX</p>
+                        {% if right == 'pageVersion' %}
+                            <p>Last editor: {{ right_page.hidden_page.changed_by }}</p>
+                        {% else %}
+                            <p>Last editor: {{ right_page.changed_by }}</p>
+                        {% endif %}
                     </div>
                 </div>
             </div>
         </div>
             </div>
+
         {% for placeholder, content in diffs.items %}
             {% if content.diff_right_to_left|length|add:"-1" > 0 %}
-            <div class="panel panel-default col-md-12">
+                <div class="row">
+                <div class="col-md-12">
+                    <div class="panel panel-default">
               <div class="panel-heading">Placeholder: {{ placeholder }}
                   <span class="badge">Changes: {{ content.diff_right_to_left|length|add:"-1" }}</span>
               </div>
@@ -134,6 +145,8 @@
 
               </div>
             </div>
+                </div>
+                </div>
             {% endif %}
         {% endfor %}
         </div>

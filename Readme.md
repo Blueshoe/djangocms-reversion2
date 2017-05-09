@@ -52,6 +52,8 @@ One node of the version subtree is always marked as primary. This node is synchr
 If you want to roll back to an older version in the subtree. The ```primary pointer``` moves. If you edit the content
 of that node there has to be a branch.
 
+![alt text](docs/PageVersionTree.png "PageVersionTree")
+
 ### Rollback
 
 The following diagram show how the primary draft can be rolled back and how a new change to that node should be implemented.

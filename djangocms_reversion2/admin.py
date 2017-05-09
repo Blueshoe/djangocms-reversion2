@@ -169,7 +169,8 @@ class PageVersionAdmin(admin.ModelAdmin):
         # -> use the latest PageVersion draft of the page
         # -> else: fetch the page
         if int(left_pk) == 0:
-            page_draft_versions = PageVersion.objects.filter(draft=page_draft).order_by('-hidden_page__changed_date')[:1]
+            page_draft_versions = PageVersion.objects.filter(draft=page_draft, active=True)\
+                .order_by('-hidden_page__changed_date')[:1]
 
             if page_draft_versions.count() > 0:
                 left_page = page_draft_versions.first()
@@ -210,6 +211,9 @@ class PageVersionAdmin(admin.ModelAdmin):
             r_page = right_page
 
         diffs = create_placeholder_contents(l_page, r_page, request, language)
+
+        # TODO: calculate total number of changes
+        # => if 0  THEN  hide 'revert' button
 
         # if not slot_html:
         #     messages.info(request, _(u'No diff between revision and current page detected'))
