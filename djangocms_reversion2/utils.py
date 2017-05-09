@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 
 from itertools import chain
 
+from cms.utils import page as page_utils
 from django.conf import settings
 
 from cms import api, constants
@@ -26,13 +27,14 @@ VERSION_FIELD_DEFAULTS = {
     'Title': {
         'published': False,
         'publisher_public': None,
+        'slug': page_utils.get_available_slug,
     },
 }
 
 
 def _copy_model(instance, **attrs):
     instance.pk = None
-    for field, value in chain(VERSION_FIELD_DEFAULTS.get(instance.__class__.__name__, {}).items(), attrs.items()):
+    for field, value in chain(attrs.items(), VERSION_FIELD_DEFAULTS.get(instance.__class__.__name__, {}).items()):
         try:
             value = value(instance)
         except TypeError:
