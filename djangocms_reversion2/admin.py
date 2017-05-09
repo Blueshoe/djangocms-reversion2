@@ -35,13 +35,11 @@ BIN_PAGE_LANGUAGE = 'de'
 BIN_BUCKET_NAMING = BIN_NAMING_PREFIX + 'Eimer-%d.%m.%Y'
 
 
-
-
-
 class PageVersionAdmin(admin.ModelAdmin):
     form = PageVersionForm
     list_display = (
-        '__str__', 'date', 'user', 'comment', 'revert_link',
+        '__str__', 'date', 'user', 'comment',
+        # 'revert_link',
         # 'diff_link'
     )
     list_display_links = None
@@ -98,9 +96,6 @@ class PageVersionAdmin(admin.ModelAdmin):
             page_id=self.request.current_page.id,
             lang=self.current_lang or ''
         )
-
-
-
 
     def revert(self, request, ** kwargs):
         page_pk = kwargs.get('page_pk')
@@ -333,8 +328,8 @@ class PageAdmin2(admin.site._registry.pop(Page).__class__):
 
     def publish_page(self, request, page_id, language):
         resp = super(PageAdmin2, self).publish_page(request, page_id, language)
-        if not PageVersion.objects.filter(draft_id=page_id, clean=True).exists():
-            PageVersion.create_version(Page.objects.get(id=page_id))
+        # if not PageVersion.objects.filter(draft_id=page_id, clean=True).exists():
+        #     PageVersion.create_version(Page.objects.get(id=page_id))
         return resp
 
     def delete_model(self, request, obj):

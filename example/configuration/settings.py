@@ -117,7 +117,7 @@ DATABASES = {
     'default': {
         # The last part of ENGINE is 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'ado_mssql'.
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': 'cms_reversion',
+        'NAME': 'cms_reversion.db',
         'USER': 'cms_reversion',
         'PASSWORD': '',
         'HOST': '',  # Set to empty string for localhost. Not used with sqlite3.

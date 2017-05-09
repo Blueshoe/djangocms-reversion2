@@ -101,53 +101,58 @@ def revise_page(page):
     return new_page
 
 
-# def revert_page(page_version):
-#     # copy all relevant attributes from hidden_page to draft
-#     source = page_version.hidden_page
-#     target = page_version.draft
-#     source = Page()
-#     target = Page()
-#     source._copy_attributes(target)
-#     for language in source.get_languages():
-#         source._copy_titles(target, language)
-#
-# def _copy_titles(source, target, language, published):
-#     """
-#     Copy all the titles to a new page (which must have a pk).
-#     :param target: The page where the new titles should be stored
-#     """
-#
-#     source = Page()
-#     target = Page()
-#
-#     assert source.publisher_is_draft
-#     assert target.publisher_is_draft
-#
-#     old_titles = dict(target.title_set.filter(language=language).values_list('language', 'pk'))
-#     for title in source.title_set.filter(language=language):
-#         old_pk = title.pk
-#         # If an old title exists, overwrite. Otherwise create new
-#         target_pk = old_titles.pop(title.language, None)
-#         title.pk = target_pk
-#
-#         # this is the previous title of target, we will keep some of this values
-#         target_title = Title.objects.get(pk=target_pk) if target_pk else None
-#
-#         title.page = target
-#         title.publisher_is_draft = True
-#         title.publisher_public_id = target_title.publisher_public_id if target_title else None
-#         title.publisher_state = PUBLISHER_STATE_DIRTY
-#         title.published = published
-#         title._publisher_keep_state = True
-#         title.save()
-#
-#         old_title = Title.objects.get(pk=old_pk)
-#         old_title.publisher_public = title
-#         old_title.publisher_state = title.publisher_state
-#         old_title.published = True
-#         old_title._publisher_keep_state = True
-#         old_title.save()
-#         if hasattr(source, 'title_cache'):
-#             source.title_cache[language] = old_title
-#     if old_titles:
-#         Title.objects.filter(id__in=old_titles.values()).delete()
+def revert_page(page_version):
+    from djangocms_reversion2.models import PageVersion
+    # copy all relevant attributes from hidden_page to draft
+    source = page_version.hidden_page
+    target = page_version.draft
+    # source = Page()
+    # target = Page()
+
+    for language in source.get_languages():
+        _copy_titles(source, target, language)
+        source._copy_contents(target, language)
+
+    source._copy_attributes(target)
+
+    PageVersion.objects.filter(draft=page_version.draft).update(active=False)
+    page_version.active = True
+    page_version.save()
+
+
+def _copy_titles(source, target, language):
+    """
+    Copy all the titles to a new page (which must have a pk).
+    :param target: The page where the new titles should be stored
+    """
+    #
+    # source = Page()
+    # target = Page()
+
+    assert source.publisher_is_draft
+    assert target.publisher_is_draft
+
+    old_titles = dict(target.title_set.filter(language=language).values_list('language', 'pk'))
+    for title in source.title_set.filter(language=language):
+
+        # If an old title exists, overwrite. Otherwise create new
+        target_pk = old_titles.pop(title.language, None)
+        title.pk = target_pk
+        title.page = target
+
+        # target fields that we keep
+        target_title = Title.objects.get(pk=target_pk) if target_pk else None
+        title.slug = getattr(target_title, 'slug', '')
+        title.path = getattr(target_title, 'path', '')
+        title.has_url_overwrite = getattr(target_title, 'has_url_overwrite', False)
+        title.redirect = getattr(target_title, 'redirect', None)
+        title.publisher_public_id = getattr(target_title, 'publisher_public_id', None)
+        title.published = getattr(target_title, 'published', False)
+
+        # dirty since we are overriding current draft
+        title.publisher_state = PUBLISHER_STATE_DIRTY
+
+        title.save()
+
+    if old_titles:
+        Title.objects.filter(id__in=old_titles.values()).delete()
