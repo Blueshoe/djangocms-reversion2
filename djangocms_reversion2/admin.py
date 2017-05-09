@@ -48,7 +48,10 @@ def revert_escape(txt, transform=True):
 
 class PageVersionAdmin(admin.ModelAdmin):
     form = PageVersionForm
-    list_display = ('__str__', 'date', 'user', 'comment', 'revert_link', 'diff_link')
+    list_display = (
+        '__str__', 'date', 'user', 'comment', 'revert_link',
+        # 'diff_link'
+    )
     list_display_links = None
     diff_template = 'admin/diff_old.html'
     diff_view_template = 'admin/diff.html'
@@ -73,20 +76,20 @@ class PageVersionAdmin(admin.ModelAdmin):
     #     ]
     #     return urlpatterns
 
-    # def get_urls(self):
-    #     urls = super(PageVersionAdmin, self).get_urls()
-    #     admin_urls = [
-    #         url(r'^add/(?P<page_id>\d+)/$', wrap(self.add_view), name='%s_%s_add' % info),
-    #         # url(r'^audittrail/xlsx$', self.download_audit_trail_xlsx, name='djangocms_reversion2_download_audit_xlsx'),
-    #         # url(r'^audittrail/$', self.download_audit_trail, name='djangocms_reversion2_download_audit'),
-    #         # url(r'^revert/(?P<pk>\d+)$', self.revert, name='djangocms_reversion2_revert_page'),
-    #         # url(r'^diff-view/page/(?P<page_pk>\d+)/base/(?P<base_pk>\d+)/comparison/(?P<comparison_pk>\d+)$',
-    #         #     self.diff_view, name='djangocms_reversion2_diff_view'),
-    #         # url(r'^view-revision/(?P<revision_pk>\d+)$', self.view_revision, name='djangocms_reversion2_view_revision'),
-    #         # url(r'^diff/(?P<pk>\d+)$', self.diff, name='djangocms_reversion2_diff'),
-    #         # url(r'^batch-add/(?P<pk>\w+)$', self.batch_add, name='djangocms_reversion2_pagerevision_batch_add'),
-    #     ]
-    #     return admin_urls + urls
+    def get_urls(self):
+        urls = super(PageVersionAdmin, self).get_urls()
+        admin_urls = [
+            # url(r'^add/(?P<page_id>\d+)/$', wrap(self.add_view), name='%s_%s_add' % info),
+            # url(r'^audittrail/xlsx$', self.download_audit_trail_xlsx, name='djangocms_reversion2_download_audit_xlsx'),
+            # url(r'^audittrail/$', self.download_audit_trail, name='djangocms_reversion2_download_audit'),
+            url(r'^revert/(?P<pk>\d+)$', self.revert, name='djangocms_reversion2_revert_page'),
+            # url(r'^diff-view/page/(?P<page_pk>\d+)/base/(?P<base_pk>\d+)/comparison/(?P<comparison_pk>\d+)$',
+            #     self.diff_view, name='djangocms_reversion2_diff_view'),
+            # url(r'^view-revision/(?P<revision_pk>\d+)$', self.view_revision, name='djangocms_reversion2_view_revision'),
+            # url(r'^diff/(?P<pk>\d+)$', self.diff, name='djangocms_reversion2_diff'),
+            # url(r'^batch-add/(?P<pk>\w+)$', self.batch_add, name='djangocms_reversion2_pagerevision_batch_add'),
+        ]
+        return admin_urls + urls
 
     def get_language_url(self, viewname, arguments={}):
         return '{url}?page_id={page_id}&language={lang}'.format(
@@ -128,7 +131,7 @@ class PageVersionAdmin(admin.ModelAdmin):
     #     report = exporter.ReportXLSXFormatter()
     #     return report.get_download_response(request, self.get_queryset(request), language=language)
 
-    # def revert(self, r        equest, ** kwargs):
+    def revert(self, request, ** kwargs):
         #     # revert page to revision
         #     pk = kwargs.pop('pk')
         #     language = request.GET.get('language')
@@ -139,7 +142,7 @@ class PageVersionAdmin(admin.ModelAdmin):
         #         prev = request.META.get('HTTP_REFERER')
         #         if prev:
         #             return redirect(prev)
-        #         return self.changelist_view(request, **kwargs)
+        return self.changelist_view(request, **kwargs)
         #
         #     # create a new revision if reverted to keep history correct
         #     # therefore mark a placeholder as dirty
@@ -316,24 +319,24 @@ class PageVersionAdmin(admin.ModelAdmin):
     revert_link.short_description = _('Revert')
     revert_link.allow_tags = True
 
-    def diff_link(self, obj):
-        return '<a href="{url}" class="btn btn-primary">{label}</a>'.format(
-            url=reverse('admin:djangocms_reversion2_diff', kwargs={'pk': obj.id}),
-            label=_('View diff')
-        )
-    diff_link.short_description = _('Diff')
-    diff_link.allow_tags = True
+    # def diff_link(self, obj):
+    #     return '<a href="{url}" class="btn btn-primary">{label}</a>'.format(
+    #         url=reverse('admin:djangocms_reversion2_diff', kwargs={'pk': obj.id}),
+    #         label=_('View diff')
+    #     )
+    # diff_link.short_description = _('Diff')
+    # diff_link.allow_tags = True
 
     def comment(self, obj):
-        return obj.revision.comment
+        return obj.comment
     comment.short_description = _('Comment')
 
     def user(self, obj):
-        return obj.revision.user
+        return obj.username
     user.short_description = _('By')
 
     def date(self, obj):
-        return obj.revision.date_created.strftime('%d.%m.%Y %H:%M')
+        return obj.hidden_page.changed_date.strftime('%d.%m.%Y %H:%M')
     date.short_description = _('Date')
 
 admin.site.register(PageVersion, PageVersionAdmin)

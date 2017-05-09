@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 
 from itertools import chain
 
+from cms.constants import PUBLISHER_STATE_DIRTY
 from cms.utils import page as page_utils
 from django.conf import settings
 
@@ -100,5 +101,53 @@ def revise_page(page):
     return new_page
 
 
-def is_clean(page):
-    return page.page_versions.filter(clean=True).exists()
+# def revert_page(page_version):
+#     # copy all relevant attributes from hidden_page to draft
+#     source = page_version.hidden_page
+#     target = page_version.draft
+#     source = Page()
+#     target = Page()
+#     source._copy_attributes(target)
+#     for language in source.get_languages():
+#         source._copy_titles(target, language)
+#
+# def _copy_titles(source, target, language, published):
+#     """
+#     Copy all the titles to a new page (which must have a pk).
+#     :param target: The page where the new titles should be stored
+#     """
+#
+#     source = Page()
+#     target = Page()
+#
+#     assert source.publisher_is_draft
+#     assert target.publisher_is_draft
+#
+#     old_titles = dict(target.title_set.filter(language=language).values_list('language', 'pk'))
+#     for title in source.title_set.filter(language=language):
+#         old_pk = title.pk
+#         # If an old title exists, overwrite. Otherwise create new
+#         target_pk = old_titles.pop(title.language, None)
+#         title.pk = target_pk
+#
+#         # this is the previous title of target, we will keep some of this values
+#         target_title = Title.objects.get(pk=target_pk) if target_pk else None
+#
+#         title.page = target
+#         title.publisher_is_draft = True
+#         title.publisher_public_id = target_title.publisher_public_id if target_title else None
+#         title.publisher_state = PUBLISHER_STATE_DIRTY
+#         title.published = published
+#         title._publisher_keep_state = True
+#         title.save()
+#
+#         old_title = Title.objects.get(pk=old_pk)
+#         old_title.publisher_public = title
+#         old_title.publisher_state = title.publisher_state
+#         old_title.published = True
+#         old_title._publisher_keep_state = True
+#         old_title.save()
+#         if hasattr(source, 'title_cache'):
+#             source.title_cache[language] = old_title
+#     if old_titles:
+#         Title.objects.filter(id__in=old_titles.values()).delete()
