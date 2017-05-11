@@ -76,7 +76,7 @@
                     <div class="panel panel-default">
                         <div class="panel-heading">
                             <h3 style="display: inline;">{% trans 'Revision ' %} # {{ left_page.pk }}</h3>
-                            <a class="cms-btn-action pull-right" href=" {{  left_page.get_absolute_url  }}?toolbar_off">
+                            <a class="cms-btn-action pull-right" href=" {{  left_page.get_absolute_url  }}">
                                      <span class="glyphicon glyphicon-eye-open" aria-hidden="true"></span>
                                         &nbsp;{% trans 'rendered version' %} &nbsp; </a>
                         </div>
@@ -98,7 +98,7 @@
                             <h3 style="display: inline;">{% trans 'current version of the page (not revision)' %}</h3>
                         {% else %}
                             <h3 style="display: inline;">{% trans 'Revision ' %} # {{ right_page.pk }}</h3>
-                            <a class="cms-btn-action pull-right" href="{{  right_page.get_absolute_url  }}?toolbar_off">
+                            <a class="cms-btn-action pull-right" href="{{  right_page.get_absolute_url  }}">
                                     <span class="glyphicon glyphicon-eye-open" aria-hidden="true"></span>
                                     {% trans 'rendered version' %}
                             </a>
