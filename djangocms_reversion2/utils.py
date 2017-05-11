@@ -13,7 +13,7 @@ from cms.extensions import extension_pool
 from cms.models import Page, Placeholder, Title, menu_pool, copy_plugins_to
 
 
-VERSION_ROOT_TITLE = '.~VERSION_ROOT_TITLE'
+VERSION_ROOT_TITLE = '.~VERSIONS'
 
 VERSION_FIELD_DEFAULTS = {
     'Page': {

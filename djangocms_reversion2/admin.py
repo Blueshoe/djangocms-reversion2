@@ -19,6 +19,7 @@ from django.core.exceptions import MultipleObjectsReturned
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse
 from django.http import HttpResponse
+from django.http.response import Http404
 from django.shortcuts import redirect, render_to_response, get_object_or_404, render
 from django.template.loader import get_template
 from django.template.response import TemplateResponse
@@ -28,6 +29,7 @@ from sekizai.context import SekizaiContext
 from djangocms_reversion2.diff import create_placeholder_contents
 from djangocms_reversion2.forms import PageVersionForm
 from djangocms_reversion2.models import PageVersion
+from djangocms_reversion2.utils import revert_page
 
 BIN_NAMING_PREFIX = '.'
 BIN_PAGE_NAME = BIN_NAMING_PREFIX + 'Papierkorb'
@@ -97,35 +99,34 @@ class PageVersionAdmin(admin.ModelAdmin):
             lang=self.current_lang or ''
         )
 
-    def revert(self, request, ** kwargs):
+    def revert(self, request, **kwargs):
         page_pk = kwargs.get('page_pk')
         to_version_pk = kwargs.get('version_pk')
-        return HttpResponse("Not Implemented yet")
-        # return self.changelist_view(request)
-        # return self.changelist_view(request, **kwargs)
-        #     # revert page to revision
-        #     pk = kwargs.pop('pk')
-        #     language = request.GET.get('language')
-        #     page_revision = PageRevision.objects.get(id=pk)
-        #
+
+        page = get_object_or_404(Page, pk=page_pk)
+        page_version = get_object_or_404(PageVersion, pk=to_version_pk)
+
+        if not page_version.draft == page:
+            raise Http404
+
+        # TODO check if page is revised in current state
         #     if not revert_page(page_revision, request):
         #         messages.info(request, u'Page is already in this revision!')
         #         prev = request.META.get('HTTP_REFERER')
         #         if prev:
         #             return redirect(prev)
 
-        #
         #     # create a new revision if reverted to keep history correct
         #     # therefore mark a placeholder as dirty
         #     # TODO: in case of no placeholder?
         #     # page_revision.page.placeholders.first().mark_as_dirty(language)
-        #     # creator = PageRevisionCreator(page_revision.page.pk, language, request, request.user,
-        #     # ugettext(u'Restored') + ' ' + '#' + str(page_revision.pk))
-        #     # creator.create_page_revision()
-        #
-        #
-        # messages.info(request, _(u'You have succesfully reverted to {rev}').format(rev=page_revision))
-        # return self.render_close_frame()
+        #     # create page version
+
+        revert_page(page_version)
+
+        messages.info(request, _(u'You have succesfully reverted to {rev}').format(rev=page_version))
+        return self.render_close_frame()
+
     # def batch_add(self, request, **kwargs):
     #     pk = kwargs.get('pk')
     #     language = kwargs.get('language')
@@ -222,8 +223,8 @@ class PageVersionAdmin(admin.ModelAdmin):
         context = SekizaiContext({
             'left': left,
             'right': right,
-            'left_page': left_page,
-            'right_page': right_page,
+            'left_page': l_page,
+            'right_page': r_page,
             'is_popup': True,
             'page': page_draft.pk,
             'active_left_page_version_pk': left_page.pk,
@@ -320,7 +321,6 @@ admin.site.register(PageVersion, PageVersionAdmin)
 
 class PageAdmin2(admin.site._registry.pop(Page).__class__):
 
-
     def change_template(self, request, object_id):
         page = get_object_or_404(self.model, pk=object_id)
         old_template = page.template
@@ -412,7 +412,9 @@ class PageAdmin2(admin.site._registry.pop(Page).__class__):
         can_change_advanced_settings = self.has_change_advanced_settings_permission(request, obj=page)
         has_change_permissions_permission = self.has_change_permissions_permission(request, obj=page)
 
-        is_bin = page.title_set.filter(title__startswith=BIN_NAMING_PREFIX).count() > 0
+        is_bin = page.title_set.filter(title__startswith=BIN_NAMING_PREFIX).exists()
+
+        is_version = page.get_root().title_set.filter(title__startswith=BIN_NAMING_PREFIX).exists()
 
         if is_bin:
             context = {
@@ -421,7 +423,20 @@ class PageAdmin2(admin.site._registry.pop(Page).__class__):
                 'paste_enabled': False,
                 'has_add_permission': False,
                 'has_change_permission': False,
-                'has_change_advanced_settings_permission':False,
+                'has_change_advanced_settings_permission': False,
+                'has_change_permissions_permission': False,
+                'has_move_page_permission': False,
+                'has_delete_permission': self.has_delete_permission(request, obj=page),
+                'CMS_PERMISSION': False,
+            }
+        elif is_version:
+            context = {
+                'page': page,
+                'page_is_restricted': True,
+                'paste_enabled': False,
+                'has_add_permission': False,
+                'has_change_permission': False,
+                'has_change_advanced_settings_permission': False,
                 'has_change_permissions_permission': False,
                 'has_move_page_permission': False,
                 'has_delete_permission': self.has_delete_permission(request, obj=page),
@@ -520,8 +535,9 @@ def render_admin_rows(request, pages, site, filtered=False, language=None):
             children = page.get_children()
 
         is_bin = page.title_set.filter(title__startswith=BIN_NAMING_PREFIX).exists()
+        is_version = page.get_root().title_set.filter(title__startswith=BIN_NAMING_PREFIX).exists()
 
-        if is_bin:
+        if is_bin or is_version:
             context = {
                 'request': request,
                 'page': page,
@@ -538,7 +554,7 @@ def render_admin_rows(request, pages, site, filtered=False, language=None):
                 'has_move_page_permission': False,
                 'children': children,
                 'site_languages': languages,
-                'open_nodes': [],#open_nodes,
+                'open_nodes': [],  #open_nodes,
                 'cms_current_site': site,
                 'is_popup': (IS_POPUP_VAR in request.POST or IS_POPUP_VAR in request.GET)
             }
