@@ -223,8 +223,8 @@ class PageVersionAdmin(admin.ModelAdmin):
         context = SekizaiContext({
             'left': left,
             'right': right,
-            'left_page': l_page,
-            'right_page': r_page,
+            'left_page': left_page,
+            'right_page': right_page,
             'is_popup': True,
             'page': page_draft.pk,
             'active_left_page_version_pk': left_page.pk,
