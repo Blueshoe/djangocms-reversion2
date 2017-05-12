@@ -33,10 +33,10 @@ class Reversion2sModifier(CMSToolbar):
             #     url=reverse('admin:djangocms_reversion2_pagerevision_batch_add', kwargs={'pk': page.id})))
             #
             # reversion_menu.add_break()
-            reversion_menu.add_modal_item(
-                _('Download audit trail'),
-                url=self.get_url('admin:djangocms_reversion2_download_audit', query_args={'language': self.current_lang}),
-            )
+            # reversion_menu.add_modal_item(
+            #     _('Download audit trail'),
+            #     url=self.get_url('admin:djangocms_reversion2_download_audit', query_args={'language': self.current_lang}),
+            # )
 
     def post_template_populate(self):
         pass
