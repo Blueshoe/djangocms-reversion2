@@ -20,16 +20,18 @@
 
     <link rel="stylesheet" type="text/css" href="{% static 'css/reversion2.css' %}">
     <form method="get" action=".">
+    <!--
         <select name="custom_language" onchange="this.getRootNode().location.href='{% url 'admin:djangocms_reversion2_diff_view' page left_page.pk 0 %}?custom_language=' + this.value;">
-            {% for lang in all_languages %}
+            {# for lang in all_languages #}
                 <option value="{{ lang }}" {% if lang == custom_language %} selected="selected" {% endif %}>{{ lang }}</option>
-            {% endfor %}
+            {# endfor  #}
         </select>
         <select>
             <option value="" selected>Please choose a branch</option>
         </select>
 
         <br><br>
+        -->
 
     </form>
 
@@ -50,12 +52,15 @@
                                     <div id="collapse_reversion2_menu_item_{{ forloop.counter0 }}" class="panel-collapse collapse in" role="tabpanel" aria-labelledby="reversion2_menu_item_{{ forloop.counter0 }}">
                                         <div class="list-group">
                                               {% for item in value %}
-                                                  <a class="list-group-item {% if item.pk == left_page.pk %} active {% endif %}" href="{% url 'admin:djangocms_reversion2_diff_view' item.draft.pk item.pk 0 %}?custom_language={{ custom_language }}" title="{{ item.comment }}">
+                                                  <a class="list-group-item {% if item.pk == left_page.pk %} active {% endif %}" href="{% url 'admin:djangocms_reversion2_diff_view' item.draft.pk item.pk 0 %}?language={{ active_language }}" title="{{ item.comment }}">
                                                         <span class="badge">#{{ item.pk }}</span>
                                                       {{ item.title|truncatechars:9 }} <br>{{ item.hidden_page.changed_date|time }}
+                                                          {% if item.active %}
+                                                            (active)
+                                                          {% endif %}
                                                   </a>
                                                   {% if item.pk == left_page.pk and item.hidden_page.pk != right_page.pk %}
-                                                      <a class="list-group-item" href="{% url 'admin:djangocms_reversion2_revert_page' page left_page.pk %}?custom_language={{ custom_language }}">
+                                                      <a class="list-group-item" href="{% url 'admin:djangocms_reversion2_revert_page' page left_page.pk %}?language={{ active_language }}">
                                                           <span class="glyphicon glyphicon-share-alt" aria-hidden="true"></span> {% trans 'Revert to' %} #{{ left_page.pk }}
                                                       </a>
                                                   {% endif %}
@@ -76,16 +81,17 @@
                     <div class="panel panel-default">
                         <div class="panel-heading">
                             <h3 style="display: inline;">{% trans 'Revision ' %} # {{ left_page.pk }}</h3>
-                            <a class="cms-btn-action pull-right" href=" {{  left_page.hidden_page.get_absolute_url }}?edit">
+                            <a class="cms-btn-action pull-right" href="{{ left_page_absolute_url }}?edit">
                                      <span class="glyphicon glyphicon-eye-open" aria-hidden="true"></span>
                                         &nbsp;{% trans 'rendered version' %} &nbsp; </a>
                         </div>
                         <div class="panel-body">
                             {% if left == 'pageVersion' %}
-                                <p>Last editor: {{ left_page.hidden_page.changed_by }}</p>
+                                <p>{% trans 'Last editor' %}: {{ left_page.hidden_page.changed_by }}</p>
                             {% else %}
-                                <p>Last editor: {{ left_page.changed_by }}</p>
+                                <p>{% trans 'Last editor' %}: {{ left_page.changed_by }}</p>
                             {% endif %}
+                            <p>{% trans 'Saved state' %}</p>
                         </div>
                     </div>
                 </div>
@@ -107,10 +113,11 @@
                     </div>
                     <div class="panel-body">
                         {% if right == 'pageVersion' %}
-                            <p>Last editor: {{ right_page.hidden_page.changed_by }}</p>
+                            <p>{% trans 'Last editor' %}: {{ right_page.hidden_page.changed_by }}</p>
                         {% else %}
-                            <p>Last editor: {{ right_page.changed_by }}</p>
+                            <p>{% trans 'Last editor' %}: {{ right_page.changed_by }}</p>
                         {% endif %}
+                        <p>{% trans 'Diff to left side' %}</p>
                     </div>
                 </div>
             </div>
@@ -118,19 +125,18 @@
             </div>
 
         {% for placeholder, content in diffs.items %}
-            {% if content.diff_right_to_left|length|add:"-1" > 0 %}
                 <div class="row">
                 <div class="col-md-12">
                     <div class="panel panel-default">
-              <div class="panel-heading">Placeholder: {{ placeholder }}
-                  <span class="badge">Changes: {{ content.diff_right_to_left|length|add:"-1" }}</span>
+              <div class="panel-heading">{% trans 'Placeholder' %}: {{ placeholder }}
+                  <span class="badge">{% trans 'Changes' %}: {{ content.diff_right_to_left|length|add:"-1" }}</span>
               </div>
               <div class="panel-body">
 
                   <div class="panel panel-default col-md-6 reversion2_diff_slots_view">
                       <div class="panel-body">
                           {% autoescape off %}
-                          {{ content.diff_right_to_left.0.1 }}
+                          {{ content.left }}
                           {% endautoescape %}
                       </div>
                     </div>
@@ -138,7 +144,7 @@
                   <div class="panel panel-default col-md-6 reversion2_diff_slots_view">
                       <div class="panel-body">
                           {% autoescape off %}
-                          {{ content.right  }}
+                          {{ content.diff_right_to_left  }}
                           {% endautoescape %}
                       </div>
                     </div>
@@ -147,7 +153,6 @@
             </div>
                 </div>
                 </div>
-            {% endif %}
         {% endfor %}
         </div>
 

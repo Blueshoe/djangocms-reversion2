@@ -7,7 +7,7 @@ import datetime
 from cms import api, constants
 from cms.admin.pageadmin import PageAdmin
 from cms.models import Page, Title, EmptyTitle
-from cms.utils import get_cms_setting, get_language_from_request, get_language_list
+from cms.utils import get_cms_setting, get_language_from_request, get_language_list, i18n
 from cms.utils import page_permissions
 from collections import defaultdict
 from django.conf.urls import url
@@ -26,6 +26,7 @@ from django.template.response import TemplateResponse
 from django.utils.translation import ugettext_lazy as _, ugettext
 from sekizai.context import SekizaiContext
 
+from djangocms_reversion2 import exporter
 from djangocms_reversion2.diff import create_placeholder_contents
 from djangocms_reversion2.forms import PageVersionForm
 from djangocms_reversion2.models import PageVersion
@@ -40,7 +41,7 @@ BIN_BUCKET_NAMING = BIN_NAMING_PREFIX + 'Eimer-%d.%m.%Y'
 class PageVersionAdmin(admin.ModelAdmin):
     form = PageVersionForm
     list_display = (
-        '__str__', 'date', 'user', 'comment',
+        '__str__', 'date', 'user', 'comment', 'language'
         # 'revert_link',
         # 'diff_link'
     )
@@ -99,9 +100,11 @@ class PageVersionAdmin(admin.ModelAdmin):
             lang=self.current_lang or ''
         )
 
+
     def revert(self, request, **kwargs):
         page_pk = kwargs.get('page_pk')
         to_version_pk = kwargs.get('version_pk')
+        language = request.GET.get('language')
 
         page = get_object_or_404(Page, pk=page_pk)
         page_version = get_object_or_404(PageVersion, pk=to_version_pk)
@@ -122,7 +125,7 @@ class PageVersionAdmin(admin.ModelAdmin):
         #     # page_revision.page.placeholders.first().mark_as_dirty(language)
         #     # create page version
 
-        revert_page(page_version)
+        revert_page(page_version, language)
 
         messages.info(request, _(u'You have succesfully reverted to {rev}').format(rev=page_version))
         return self.render_close_frame()
@@ -151,6 +154,8 @@ class PageVersionAdmin(admin.ModelAdmin):
         right_pk = kwargs.pop('right_pk')
         page_pk = kwargs.pop('page_pk')
 
+        language = request.GET.get('language')
+
         left = 'page'
         right = 'page'
 
@@ -170,7 +175,7 @@ class PageVersionAdmin(admin.ModelAdmin):
         # -> use the latest PageVersion draft of the page
         # -> else: fetch the page
         if int(left_pk) == 0:
-            page_draft_versions = PageVersion.objects.filter(draft=page_draft, active=True)\
+            page_draft_versions = PageVersion.objects.filter(draft=page_draft, active=True, language=language)\
                 .order_by('-hidden_page__changed_date')[:1]
 
             if page_draft_versions.count() > 0:
@@ -184,22 +189,15 @@ class PageVersionAdmin(admin.ModelAdmin):
             left_page = PageVersion.objects.get(pk=left_pk)
 
         # list of page's revisions to show as the left sidebar
-        revision_list = PageVersion.objects.filter(draft=page_draft)
+        revision_list = PageVersion.objects.filter(draft=page_draft, language=language)
         # group the revisions by date
-        grouped_revisions = {}  # defaultdict(default_factory=list)
+        grouped_revisions = {}
         for rev in revision_list.iterator():
             key = rev.hidden_page.changed_date.strftime("%Y-%m-%d")
             if key not in grouped_revisions.keys():
                 grouped_revisions[key] = []
-            grouped_revisions[key].append(rev)
+            grouped_revisions[key].insert(0, rev)
         sorted_grouped_revisions = sorted(grouped_revisions.iteritems(), key=lambda (k, v): k, reverse=True)
-
-        language = request.GET.get('custom_language')
-
-        if not language:
-            language = get_language_from_request(request, current_page=page_draft)
-        if not language:
-            language = page_draft.languages.split(',')[0]
 
         # differences between the placeholders
         if left is 'pageVersion':
@@ -213,12 +211,7 @@ class PageVersionAdmin(admin.ModelAdmin):
 
         diffs = create_placeholder_contents(l_page, r_page, request, language)
 
-        # TODO: calculate total number of changes
-        # => if 0  THEN  hide 'revert' button
-
-        # if not slot_html:
-        #     messages.info(request, _(u'No diff between revision and current page detected'))
-        #     return self.changelist_view(request, **kwargs)
+        left_page_absolute_url = left_page.hidden_page.get_draft_url(language=language)
 
         context = SekizaiContext({
             'left': left,
@@ -231,17 +224,15 @@ class PageVersionAdmin(admin.ModelAdmin):
             'request': request,
             'sorted_grouped_revisions': sorted_grouped_revisions,
             'active_language': language,
-            'custom_language': language,
             'all_languages': page_draft.languages.split(','),
-            'diffs': diffs
+            'diffs': diffs,
+            'left_page_absolute_url': left_page_absolute_url
         })
         return render(request, self.diff_view_template, context=context)
 
     def add_view(self, request, form_url='', extra_context=None):
-        # self.page = get_object_or_404(Page, pk=page_id)
-        # print self.page.id
         # page = get_page(request, remove_params=False)
-        # language = get_language_from_request(request)
+        #
         # if PageMarker.objects.filter(page=page, language=language).exists():
         #     messages.info(request, _('This page is already revised.'))
         #     return self.render_close_frame()
@@ -261,10 +252,11 @@ class PageVersionAdmin(admin.ModelAdmin):
     def render_close_frame(self):
         return render_to_response('admin/close_frame.html', {})
 
-    # def get_form(self, request, obj=None, **kwargs):
-    #     form = super(PageVersionAdmin, self).get_form(request, obj=obj, **kwargs)
-    #     form.fields['draft'].initial = self.page
-    #     return form
+    def get_form(self, request, obj=None, **kwargs):
+        form = super(PageVersionAdmin, self).get_form(request, obj=obj, **kwargs)
+        language = get_language_from_request(request)
+        form.base_fields['language'].initial = language
+        return form
 
     def get_queryset(self, request):
         qs = super(PageVersionAdmin, self).get_queryset(request)

@@ -25,25 +25,25 @@ class PageVersion(MP_Node):
     active = models.BooleanField(_('Active'), default=False,
                                  help_text=_('This the active version of current draft. There can be only one such '
                                              'version per Page version tree.'))
-    # clean = models.BooleanField(_('Clean'), default=True)
+    language = models.CharField(_('Language'), blank=True, max_length=20)
 
     def get_title(self):
         return self.title or 'implement'  # TODO
 
     @classmethod
-    def create_version(cls, draft, version_parent=None, comment='', title=''):
+    def create_version(cls, draft, language, version_parent=None, comment='', title=''):
         # draft.page_versions.update(clean=False)
-        hidden_page = revise_page(draft)
-        if not version_parent and draft.page_versions.exists():
-            version_parent = draft.page_versions.get(active=True)
+        hidden_page = revise_page(draft, language)
+        if not version_parent and draft.page_versions.filter(language=language).exists():
+            version_parent = draft.page_versions.get(active=True, language=language)
 
         if version_parent:
             page_version = version_parent.add_child(hidden_page=hidden_page, draft=draft, comment=comment, title=title,
-                                                    active=version_parent.active)
+                                                    active=version_parent.active, language=language)
             version_parent.deactivate()
         else:
             page_version = PageVersion.add_root(hidden_page=hidden_page, draft=draft, comment=comment, title=title,
-                                                active=True)
+                                                active=True, language=language)
         return page_version
 
     def save(self, **kwargs):

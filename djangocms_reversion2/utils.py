@@ -53,7 +53,7 @@ def get_version_page_root(site):
             VERSION_ROOT_TITLE, constants.TEMPLATE_INHERITANCE_MAGIC, settings.LANGUAGES[0][0], site=site)
 
 
-def revise_page(page):
+def revise_page(page, language):
     """
     Copy a page [ and all its descendants to a new location ]
     Doesn't checks for add page permissions anymore, this is done in PageAdmin.
@@ -76,7 +76,7 @@ def revise_page(page):
     new_page = _copy_model(page, parent=version_page_root)
 
     # copy titles of this page
-    for title in Title.objects.filter(page=origin_id).iterator():
+    for title in Title.objects.filter(page=origin_id, language=language).iterator():
         _copy_model(title, page=new_page)
 
     # copy the placeholders (and plugins on those placeholders!)
@@ -89,7 +89,7 @@ def revise_page(page):
             ph = _copy_model(ph)
             page.placeholders.add(ph)
         if plugins:
-            copy_plugins_to(plugins, ph)
+            copy_plugins_to(plugins, ph, to_language=language)
 
     # TODO dig deep and find all implications of this and find out what do do when reversioning
     extension_pool.copy_extensions(Page.objects.get(pk=origin_id), new_page)
@@ -101,7 +101,7 @@ def revise_page(page):
     return new_page
 
 
-def revert_page(page_version):
+def revert_page(page_version, language):
     from djangocms_reversion2.models import PageVersion
     # copy all relevant attributes from hidden_page to draft
     source = page_version.hidden_page
@@ -109,13 +109,12 @@ def revert_page(page_version):
     # source = Page()
     # target = Page()
 
-    for language in source.get_languages():
-        _copy_titles(source, target, language)
-        source._copy_contents(target, language)
+    _copy_titles(source, target, language)
+    source._copy_contents(target, language)
 
     source._copy_attributes(target)
 
-    PageVersion.objects.filter(draft=page_version.draft).update(active=False)
+    PageVersion.objects.filter(draft=page_version.draft, language=language).update(active=False)
     page_version.active = True
     page_version.save()
 

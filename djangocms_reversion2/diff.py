@@ -21,18 +21,28 @@ def create_placeholder_contents(left_page, right_page, request, language):
     # persist rendered html content for each placeholder for later use in diff
     placeholders_a = Placeholder.objects.filter(page=left_page.pk).order_by('slot')
     placeholders_b = Placeholder.objects.filter(page=right_page.pk).order_by('slot')
-    placeholders = zip(placeholders_a, placeholders_b)
+    slots = set()
+    for p in placeholders_a or placeholders_b:
+        slots.add(p.slot)
+    placeholders = {x: [placeholders_a.filter(slot=x).get(slot=x)
+                        if placeholders_a.filter(slot=x).count() > 0 else None,
+                        placeholders_b.filter(slot=x).get(slot=x)
+                        if placeholders_b.filter(slot=x).count() > 0 else None]
+                    for x in slots}
     diffs = {}
-    for p1, p2 in placeholders:
+    for key, (p1, p2) in placeholders.items():
         body1 = placeholder_html(p1, request, language)
         body2 = placeholder_html(p2, request, language)
         diff = diff_texts(body2, body1)
-        diffs[p1.slot] = {'left': revert_escape(body1), 'right': revert_escape(body2),
-                          'diff_right_to_left': diff}
+        diffs[key] = {'left': body1, 'right': body2,
+                      'diff_right_to_left': diff}
+
     return diffs
 
 
 def placeholder_html(placeholder, request, language):
+    if not placeholder:
+        return ''
     if hasattr(placeholder, '_plugins_cache'):
         del placeholder._plugins_cache
     context = SekizaiContext({'request': request})
@@ -44,8 +54,9 @@ def diff_texts(text1, text2):
     differ = dmp.diff_match_patch()
     diffs = differ.diff_main(text1, text2)
     differ.diff_cleanupEfficiency(diffs)
-    for i in range(len(diffs)):
-        diffs[i] = [diffs[i][0], revert_escape(diffs[i][1])]
+
+    diffs = revert_escape(differ.diff_prettyHtml(diffs))
+
     return diffs
 
 
