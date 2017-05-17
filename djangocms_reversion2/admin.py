@@ -85,6 +85,24 @@ class PageVersionAdmin(admin.ModelAdmin):
     #     ]
     #     return admin_urls + urls
 
+    def view_revision(self, request, **kwargs):
+        # render a page for a popup in an old revision
+        revision_pk = kwargs.pop('revision_pk')
+        language = request.GET.get('language')
+        page_version = PageVersion.objects.get(id=revision_pk)
+
+        page_absolute_url = page_version.hidden_page.get_draft_url(language=language)
+
+
+        context = SekizaiContext({
+            'page_version': page_version,
+            'is_popup': True,
+            'request': request,
+            'page_absolute_url': page_absolute_url
+        })
+
+        return render(request, self.view_revision_template, context=context)
+
     def get_urls(self):
         urls = super(PageVersionAdmin, self).get_urls()
         admin_urls = [
@@ -92,6 +110,7 @@ class PageVersionAdmin(admin.ModelAdmin):
                 self.diff_view, name='djangocms_reversion2_diff_view'),
             url(r'^revert/page/(?P<page_pk>\d+)/to/(?P<version_pk>\d+)$', self.revert, name='djangocms_reversion2_revert_page'),
             url(r'^batch-add/(?P<pk>\w+)$', self.batch_add, name='djangocms_reversion2_pagerevision_batch_add'),
+            url(r'^view-revision/(?P<revision_pk>\d+)$', self.view_revision, name='djangocms_reversion2_view_revision'),
         ]
         return admin_urls + urls
 
