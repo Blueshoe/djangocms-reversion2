@@ -6,6 +6,7 @@ import datetime
 
 from cms import api, constants
 from cms.admin.pageadmin import PageAdmin
+from cms.middleware.page import get_page
 from cms.models import Page, Title, EmptyTitle
 from cms.utils import get_cms_setting, get_language_from_request, get_language_list, i18n
 from cms.utils import page_permissions
@@ -30,7 +31,7 @@ from djangocms_reversion2 import exporter
 from djangocms_reversion2.diff import create_placeholder_contents
 from djangocms_reversion2.forms import PageVersionForm
 from djangocms_reversion2.models import PageVersion
-from djangocms_reversion2.utils import revert_page
+from djangocms_reversion2.utils import revert_page, revise_all_pages
 
 BIN_NAMING_PREFIX = '.'
 BIN_PAGE_NAME = BIN_NAMING_PREFIX + 'Papierkorb'
@@ -89,7 +90,8 @@ class PageVersionAdmin(admin.ModelAdmin):
         admin_urls = [
             url(r'^diff-view/page/(?P<page_pk>\d+)/left/(?P<left_pk>\d+)/right/(?P<right_pk>\d+)/$',
                 self.diff_view, name='djangocms_reversion2_diff_view'),
-            url(r'^revert/page/(?P<page_pk>\d+)/to/(?P<version_pk>\d+)$', self.revert, name='djangocms_reversion2_revert_page')
+            url(r'^revert/page/(?P<page_pk>\d+)/to/(?P<version_pk>\d+)$', self.revert, name='djangocms_reversion2_revert_page'),
+            url(r'^batch-add/(?P<pk>\w+)$', self.batch_add, name='djangocms_reversion2_pagerevision_batch_add'),
         ]
         return admin_urls + urls
 
@@ -130,16 +132,13 @@ class PageVersionAdmin(admin.ModelAdmin):
         messages.info(request, _(u'You have succesfully reverted to {rev}').format(rev=page_version))
         return self.render_close_frame()
 
-    # def batch_add(self, request, **kwargs):
-    #     pk = kwargs.get('pk')
-    #     language = kwargs.get('language')
-    #     languages = [language] if language else None
-    #     creator = PageRevisionBatchCreator(request, languages=languages, user=request.user)
-    #     page_revisions = creator.create_page_revisions()
-    #     num = len(page_revisions)
-    #     messages.info(request, _(u'{num} unversioned pages have been versioned.').format(num=num))
-    #     page = Page.objects.get(pk=pk)
-    #     return redirect(page.get_absolute_url(language), permanent=True)
+    def batch_add(self, request, **kwargs):
+        pk = kwargs.get('pk')
+        language = request.GET.get('language')
+        num = revise_all_pages()
+        messages.info(request, _(u'{num} unversioned pages have been versioned.').format(num=num))
+        page = Page.objects.get(pk=pk)
+        return redirect(page.get_absolute_url(language), permanent=True)
 
     def diff_view(self, request, **kwargs):
         # view which shows a revision on the left and one on the right
@@ -154,6 +153,8 @@ class PageVersionAdmin(admin.ModelAdmin):
         right_pk = kwargs.pop('right_pk')
         page_pk = kwargs.pop('page_pk')
 
+        right_page_is_active_page = True
+
         language = request.GET.get('language')
 
         left = 'page'
@@ -167,9 +168,11 @@ class PageVersionAdmin(admin.ModelAdmin):
         # -> else: fetch the page
         if int(right_pk) == 0:
             right_page = page_draft
+            right_page_is_active_page = True
         else:
             right = 'pageVersion'
             right_page = PageVersion.objects.get(pk=right_pk)
+            right_page_is_active_page = False
 
         # the left panel has id=0
         # -> use the latest PageVersion draft of the page
@@ -226,17 +229,20 @@ class PageVersionAdmin(admin.ModelAdmin):
             'active_language': language,
             'all_languages': page_draft.languages.split(','),
             'diffs': diffs,
-            'left_page_absolute_url': left_page_absolute_url
+            'left_page_absolute_url': left_page_absolute_url,
+            'right_page_is_active_page': right_page_is_active_page
         })
         return render(request, self.diff_view_template, context=context)
 
     def add_view(self, request, form_url='', extra_context=None):
-        # page = get_page(request, remove_params=False)
-        #
-        # if PageMarker.objects.filter(page=page, language=language).exists():
-        #     messages.info(request, _('This page is already revised.'))
-        #     return self.render_close_frame()
-        # raise Http404
+        language = request.GET.get('language')
+        draft_pk = request.GET.get('draft')
+        page = get_object_or_404(Page, pk=draft_pk)
+
+        if page.page_versions.filter(active=True, dirty=False, language=language).count() > 0:
+            messages.info(request, _('This page is already revised.'))
+            return self.render_close_frame()
+
         return super(PageVersionAdmin, self).add_view(request, form_url=form_url, extra_context=extra_context)
 
     def get_changeform_initial_data(self, request):

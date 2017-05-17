@@ -25,6 +25,9 @@ class PageVersion(MP_Node):
     active = models.BooleanField(_('Active'), default=False,
                                  help_text=_('This the active version of current draft. There can be only one such '
                                              'version per Page version tree.'))
+    dirty = models.BooleanField(_('Dirty'), default=False,
+                                help_text=_('Only new PageVersions are not dirty of if a page has been reverted to a '
+                                            'PageVersion.'))
     language = models.CharField(_('Language'), blank=True, max_length=20)
 
     def get_title(self):
@@ -32,6 +35,11 @@ class PageVersion(MP_Node):
 
     @classmethod
     def create_version(cls, draft, language, version_parent=None, comment='', title=''):
+        try:
+            draft.page_versions.get(active=True, dirty=False, language=language)
+            raise AssertionError('not dirty')
+        except PageVersion.DoesNotExist:
+            pass
         # draft.page_versions.update(clean=False)
         hidden_page = revise_page(draft, language)
         if not version_parent and draft.page_versions.filter(language=language).exists():

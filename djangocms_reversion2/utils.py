@@ -13,6 +13,7 @@ from cms.extensions import extension_pool
 from cms.models import Page, Placeholder, Title, menu_pool, copy_plugins_to
 
 
+
 VERSION_ROOT_TITLE = '.~VERSIONS'
 
 VERSION_FIELD_DEFAULTS = {
@@ -63,6 +64,11 @@ def revise_page(page, language):
     """
     if not page.publisher_is_draft:
         raise PublicIsUnmodifiable("revise page is not allowed for public pages")
+
+    # if the active version is not dirty -> do not create a revision
+    if page.page_versions.filter(active=True, dirty=False, language=language).count() > 0:
+        return None
+
 
     # avoid muting input param
     page = Page.objects.get(pk=page.pk)
@@ -116,6 +122,7 @@ def revert_page(page_version, language):
 
     PageVersion.objects.filter(draft=page_version.draft, language=language).update(active=False)
     page_version.active = True
+    page_version.dirty = False
     page_version.save()
 
 
@@ -155,3 +162,23 @@ def _copy_titles(source, target, language):
 
     if old_titles:
         Title.objects.filter(id__in=old_titles.values()).delete()
+
+
+def revise_all_pages():
+    """
+    Revise all pages (exclude the bin)
+    :return: number of created revisions
+    """
+    from djangocms_reversion2.admin import BIN_NAMING_PREFIX
+    from djangocms_reversion2.models import PageVersion
+    num = 0
+    for page in Page.objects.all().exclude(title_set__title__startswith=BIN_NAMING_PREFIX).exclude(
+                                     parent__title_set__title__startswith=BIN_NAMING_PREFIX).iterator():
+        draft = page.get_draft_object()
+        for language in page.languages.split(','):
+            try:
+                PageVersion.create_version(draft, language, version_parent=None, comment='batch created', title='auto')
+                num += 1
+            except AssertionError:
+                pass
+    return num

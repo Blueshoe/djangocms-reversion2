@@ -28,10 +28,12 @@ class Reversion2sModifier(CMSToolbar):
                                  arguments={'left_pk': '0', 'right_pk': '0', 'page_pk': page.id},
                                  query_args={'language': self.current_lang}))
             reversion_menu.add_break()
-            # reversion_menu.add_item(LinkItem(
-            #     _('Create a snapshot of all unrevised pages'),
-            #     url=reverse('admin:djangocms_reversion2_pagerevision_batch_add', kwargs={'pk': page.id})))
-            #
+            reversion_menu.add_item(LinkItem(
+                _('Create a snapshot of all unrevised pages'),
+                url=self.get_url('admin:djangocms_reversion2_pagerevision_batch_add', arguments={'pk': page.id},
+                            query_args={'language': self.current_lang}
+                            )))
+
             # reversion_menu.add_break()
             # reversion_menu.add_modal_item(
             #     _('Download audit trail'),

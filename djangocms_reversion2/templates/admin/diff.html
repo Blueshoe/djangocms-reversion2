@@ -59,7 +59,7 @@
                                                             (active)
                                                           {% endif %}
                                                   </a>
-                                                  {% if item.pk == left_page.pk and item.hidden_page.pk != right_page.pk %}
+                                                  {% if item.pk == left_page.pk and item.hidden_page.pk != right_page.pk and left_page.dirty %}
                                                       <a class="list-group-item" href="{% url 'admin:djangocms_reversion2_revert_page' page left_page.pk %}?language={{ active_language }}">
                                                           <span class="glyphicon glyphicon-share-alt" aria-hidden="true"></span> {% trans 'Revert to' %} #{{ left_page.pk }}
                                                       </a>
@@ -100,7 +100,7 @@
             <div id="right">
                 <div class="panel panel-success">
                     <div class="panel-heading">
-                        {% if right_page.pk == page.pk %}
+                        {% if right_page.hidden_page.pk == page.pk %}
                             <h3 style="display: inline;">{% trans 'current version of the page (not revision)' %}</h3>
                         {% else %}
                             <h3 style="display: inline;">{% trans 'Revision ' %} # {{ right_page.pk }}</h3>
@@ -124,12 +124,13 @@
         </div>
             </div>
 
+        {% if left_page.dirty and right_page_is_active_page %}
         {% for placeholder, content in diffs.items %}
                 <div class="row">
                 <div class="col-md-12">
                     <div class="panel panel-default">
               <div class="panel-heading">{% trans 'Placeholder' %}: {{ placeholder }}
-                  <span class="badge">{% trans 'Changes' %}: {{ content.diff_right_to_left|length|add:"-1" }}</span>
+                  <!--<span class="badge">{% trans 'Changes' %}: {{ content.diff_right_to_left|length|add:"-1" }}</span>-->
               </div>
               <div class="panel-body">
 
@@ -154,6 +155,9 @@
                 </div>
                 </div>
         {% endfor %}
+        {% else %}
+            <p>No difference to active draft!</p>
+        {% endif %}
         </div>
 
     </div>
