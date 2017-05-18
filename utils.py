@@ -3,8 +3,10 @@ from __future__ import unicode_literals
 
 from itertools import chain
 
+import time
 from cms.constants import PUBLISHER_STATE_DIRTY
 from cms.utils import page as page_utils
+from cms.utils.page import get_available_slug
 from django.conf import settings
 
 from cms import api, constants
@@ -29,7 +31,7 @@ VERSION_FIELD_DEFAULTS = {
     'Title': {
         'published': False,
         'publisher_public': None,
-        'slug': page_utils.get_available_slug,
+        # 'slug': page_utils.get_available_slug,
     },
 }
 
@@ -69,7 +71,6 @@ def revise_page(page, language):
     if page.page_versions.filter(active=True, dirty=False, language=language).count() > 0:
         return None
 
-
     # avoid muting input param
     page = Page.objects.get(pk=page.pk)
 
@@ -85,6 +86,9 @@ def revise_page(page, language):
     for title in Title.objects.filter(page=origin_id, language=language).iterator():
         _copy_model(title, page=new_page)
 
+    print(new_page.title_set.all())
+
+
     # copy the placeholders (and plugins on those placeholders!)
     for ph in Placeholder.objects.filter(page=origin_id).iterator():
         plugins = ph.get_plugins_list()
@@ -99,10 +103,7 @@ def revise_page(page, language):
 
     # TODO dig deep and find all implications of this and find out what do do when reversioning
     # TODO: Does not work?
-    try:
-        extension_pool.copy_extensions(Page.objects.get(pk=origin_id), new_page)
-    except Exception:
-        print('e')
+    extension_pool.copy_extensions(Page.objects.get(pk=origin_id), new_page, languages=[language])
 
     new_page = new_page.move(version_page_root, pos="last-child")
 
@@ -159,6 +160,9 @@ def _copy_titles(source, target, language):
         title.publisher_public_id = getattr(target_title, 'publisher_public_id', None)
         title.published = getattr(target_title, 'published', False)
 
+        # save the title and set unique slug
+        title.slug = get_available_slug(title, new_slug=str(time.time()))
+
         # dirty since we are overriding current draft
         title.publisher_state = PUBLISHER_STATE_DIRTY
 
@@ -184,12 +188,16 @@ def revise_all_pages():
             try:
                 try:
                     # this is necessary, because an IntegrityError makes a rollback necessary
-                    with transaction.atomic():
-                        PageVersion.create_version(draft, language, version_parent=None, comment='batch created', title='auto')
-                except IntegrityError:
+                    #with transaction.atomic():
+                    PageVersion.create_version(draft, language, version_parent=None, comment='batch created', title='auto')
+                except IntegrityError as e:
+                    print(e)
                     integrity_errors += 1
-                num += 1
-            except AssertionError:
+                else:
+                    print("num: {}, \ti:{}".format(num, integrity_errors))
+                    num += 1
+            except AssertionError as a:
+                print(a)
                 pass
     print('integrity_errors: {}'.format(integrity_errors))
     return num
