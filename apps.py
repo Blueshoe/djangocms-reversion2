@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+import inspect
+
 from django.apps import AppConfig
 from .signals import connect_all_plugins
 

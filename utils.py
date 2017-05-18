@@ -11,8 +11,8 @@ from cms import api, constants
 from cms.exceptions import PublicIsUnmodifiable
 from cms.extensions import extension_pool
 from cms.models import Page, Placeholder, Title, menu_pool, copy_plugins_to
-
-
+from django.db import IntegrityError
+from django.db import transaction
 
 VERSION_ROOT_TITLE = '.~VERSIONS'
 
@@ -176,13 +176,20 @@ def revise_all_pages():
     from .admin import BIN_NAMING_PREFIX
     from .models import PageVersion
     num = 0
+    integrity_errors = 0
     for page in Page.objects.all().exclude(title_set__title__startswith=BIN_NAMING_PREFIX).exclude(
                                      parent__title_set__title__startswith=BIN_NAMING_PREFIX).iterator():
         draft = page.get_draft_object()
         for language in page.languages.split(','):
             try:
-                PageVersion.create_version(draft, language, version_parent=None, comment='batch created', title='auto')
+                try:
+                    # this is necessary, because an IntegrityError makes a rollback necessary
+                    with transaction.atomic():
+                        PageVersion.create_version(draft, language, version_parent=None, comment='batch created', title='auto')
+                except IntegrityError:
+                    integrity_errors += 1
                 num += 1
             except AssertionError:
                 pass
+    print('integrity_errors: {}'.format(integrity_errors))
     return num
