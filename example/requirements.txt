@@ -1,8 +1,0 @@
-Django>=1.8,<1.9
-django-cms>=3.4.2,<3.5
-psycopg2>=2.6
-django-reversion>=2
-django-extensions
-djangocms-text-ckeditor
-djangocms-link
-diff-match-patch==20110725.1
