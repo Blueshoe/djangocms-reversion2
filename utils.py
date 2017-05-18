@@ -97,10 +97,12 @@ def revise_page(page, language):
         if plugins:
             copy_plugins_to(plugins, ph, to_language=language)
 
-    new_page.save(commit=True)
-
     # TODO dig deep and find all implications of this and find out what do do when reversioning
-    extension_pool.copy_extensions(Page.objects.get(pk=origin_id), new_page)
+    # TODO: Does not work?
+    try:
+        extension_pool.copy_extensions(Page.objects.get(pk=origin_id), new_page)
+    except Exception:
+        print('e')
 
     new_page = new_page.move(version_page_root, pos="last-child")
 

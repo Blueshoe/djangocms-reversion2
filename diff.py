@@ -45,8 +45,13 @@ def placeholder_html(placeholder, request, language):
         return ''
     if hasattr(placeholder, '_plugins_cache'):
         del placeholder._plugins_cache
-    context = SekizaiContext({'request': request})
+
     renderer = ContentRenderer(request)
+    context = SekizaiContext({
+        'request': request,
+        'cms_content_renderer': renderer
+    })
+
     return renderer.render_placeholder(placeholder, context, language=language).strip()
 
 
