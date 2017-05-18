@@ -97,6 +97,8 @@ def revise_page(page, language):
         if plugins:
             copy_plugins_to(plugins, ph, to_language=language)
 
+    new_page.save(commit=True)
+
     # TODO dig deep and find all implications of this and find out what do do when reversioning
     extension_pool.copy_extensions(Page.objects.get(pk=origin_id), new_page)
 
@@ -108,7 +110,7 @@ def revise_page(page, language):
 
 
 def revert_page(page_version, language):
-    from djangocms_reversion2.models import PageVersion
+    from .models import PageVersion
     # copy all relevant attributes from hidden_page to draft
     source = page_version.hidden_page
     target = page_version.draft
@@ -169,8 +171,8 @@ def revise_all_pages():
     Revise all pages (exclude the bin)
     :return: number of created revisions
     """
-    from djangocms_reversion2.admin import BIN_NAMING_PREFIX
-    from djangocms_reversion2.models import PageVersion
+    from .admin import BIN_NAMING_PREFIX
+    from .models import PageVersion
     num = 0
     for page in Page.objects.all().exclude(title_set__title__startswith=BIN_NAMING_PREFIX).exclude(
                                      parent__title_set__title__startswith=BIN_NAMING_PREFIX).iterator():

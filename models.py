@@ -9,7 +9,7 @@ from django.utils.translation import ugettext_lazy as _, get_language
 from cms.models import Page, Title
 from treebeard.mp_tree import MP_Node
 
-from djangocms_reversion2.utils import revise_page
+from .utils import revise_page
 
 
 @python_2_unicode_compatible
