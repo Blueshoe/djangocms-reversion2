@@ -1,12 +1,10 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
-from cms.models.fields import PageField
 from django.db import models
 from django.utils.encoding import python_2_unicode_compatible
 from django.utils.translation import ugettext_lazy as _, get_language
 
-from cms.models import Page, Title
 from treebeard.mp_tree import MP_Node
 
 from .utils import revise_page
@@ -35,11 +33,9 @@ class PageVersion(MP_Node):
 
     @classmethod
     def create_version(cls, draft, language, version_parent=None, comment='', title=''):
-        try:
-            draft.page_versions.get(active=True, dirty=False, language=language)
+        if draft.page_versions.filter(active=True, dirty=False, language=language).count() > 0:
             raise AssertionError('not dirty')
-        except PageVersion.DoesNotExist:
-            pass
+
         # draft.page_versions.update(clean=False)
         hidden_page = revise_page(draft, language)
         if not version_parent and draft.page_versions.filter(language=language).exists():
