@@ -49,7 +49,8 @@ def placeholder_html(placeholder, request, language):
     renderer = ContentRenderer(request)
     context = SekizaiContext({
         'request': request,
-        'cms_content_renderer': renderer
+        'cms_content_renderer': renderer,
+        'CMS_TEMPLATE': placeholder.page.get_template
     })
 
     return renderer.render_placeholder(placeholder, context, language=language).strip()
