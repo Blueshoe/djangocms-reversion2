@@ -31,7 +31,8 @@ VERSION_FIELD_DEFAULTS = {
     'Title': {
         'published': False,
         'publisher_public': None,
-        # 'slug': page_utils.get_available_slug,
+        'has_url_overwrite': False,
+        'slug': page_utils.get_available_slug,
     },
 }
 
@@ -63,6 +64,7 @@ def revise_page(page, language):
 
     Note for issue #1166: when copying pages there is no need to check for
     conflicting URLs as pages are copied unpublished.
+    -> That's wrong -> get_queryset_by_path(...).get() will fail
     """
     if not page.publisher_is_draft:
         raise PublicIsUnmodifiable("revise page is not allowed for public pages")
@@ -158,9 +160,6 @@ def _copy_titles(source, target, language):
         title.redirect = getattr(target_title, 'redirect', None)
         title.publisher_public_id = getattr(target_title, 'publisher_public_id', None)
         title.published = getattr(target_title, 'published', False)
-
-        # save the title and set unique slug
-        title.slug = get_available_slug(title, new_slug=str(time.time()))
 
         # dirty since we are overriding current draft
         title.publisher_state = PUBLISHER_STATE_DIRTY
