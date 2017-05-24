@@ -1,0 +1,226 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2017-05-24 15:02+0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: djangocms_reversion2/admin.py:151
+#, python-brace-format
+msgid "You have succesfully reverted to {rev}"
+msgstr "Erfolgreich zurückgerollt auf {rev}"
+
+#: djangocms_reversion2/admin.py:158
+#, python-brace-format
+msgid "{num} unversioned pages have been versioned."
+msgstr "{num} unversionierte Seiten wurden versioniert."
+
+#: djangocms_reversion2/admin.py:207
+msgid "There are no snapshots for this page"
+msgstr "Es gibt keine Snapshots für diese Seite."
+
+#: djangocms_reversion2/admin.py:262
+msgid "This page is already revised."
+msgstr "Diese Seite ist bereits versioniert."
+
+#: djangocms_reversion2/admin.py:311 djangocms_reversion2/admin.py:313
+#: djangocms_reversion2/templates/admin/diff_old.html:27
+msgid "Revert"
+msgstr "Zurückrollen"
+
+#: djangocms_reversion2/admin.py:326 djangocms_reversion2/models.py:21
+msgid "Comment"
+msgstr "Kommentar"
+
+#: djangocms_reversion2/admin.py:330
+msgid "By"
+msgstr "Von"
+
+#: djangocms_reversion2/admin.py:334
+msgid "Date"
+msgstr "Datum"
+
+#: djangocms_reversion2/cms_toolbars.py:17
+msgid "Reversion"
+msgstr "Version"
+
+#: djangocms_reversion2/cms_toolbars.py:20
+msgid "Create a snapshot of current page"
+msgstr "Neue Version der Seite erstellen"
+
+#: djangocms_reversion2/cms_toolbars.py:26
+msgid "Show history"
+msgstr "Versionsgeschichte anzeigen"
+
+#: djangocms_reversion2/cms_toolbars.py:32
+msgid "Create a snapshot of all unrevised pages"
+msgstr "Versioniere alle unversionierten Seiten"
+
+#: djangocms_reversion2/models.py:15
+msgid "Hidden Page"
+msgstr "Versteckte Seite"
+
+#: djangocms_reversion2/models.py:16
+msgid "This Page object holds the versioned contents of this PageVersion."
+msgstr "Dieses Seitenobjekt hält alle versionierten Inhalte der Seiten Version"
+
+#: djangocms_reversion2/models.py:18
+msgid "Draft"
+msgstr "Entwurf"
+
+#: djangocms_reversion2/models.py:19
+msgid "Current active draft."
+msgstr "Derzeit aktiver Entwurf."
+
+#: djangocms_reversion2/models.py:21
+msgid "Particular information concerning this Version"
+msgstr "Diese Version betreffende Information"
+
+#: djangocms_reversion2/models.py:22
+msgid "Name"
+msgstr "Name"
+
+#: djangocms_reversion2/models.py:23
+msgid "Active"
+msgstr "Aktiv"
+
+#: djangocms_reversion2/models.py:24
+msgid ""
+"This the active version of current draft. There can be only one such version "
+"per Page version tree."
+msgstr ""
+"Das ist die aktive Version des aktuellen Entwurfs. Davon kann nur eine pro "
+"Seiten-Versions-Baum existieren."
+
+#: djangocms_reversion2/models.py:26
+msgid "Dirty"
+msgstr "Dreckig"
+
+#: djangocms_reversion2/models.py:27
+msgid ""
+"Only new PageVersions are not dirty of if a page has been reverted to a "
+"PageVersion."
+msgstr ""
+"NUr neue Seiten-Versionen sind nicht dreckig oder Seiten-Versionen, auf die "
+"gerade zurückgerollt wurde."
+
+#: djangocms_reversion2/models.py:29
+msgid "Language"
+msgstr "Sprache"
+
+#: djangocms_reversion2/page_revisions.py:24
+msgid "Created in batch"
+msgstr "In Stapelverarbeitung erstellt"
+
+#: djangocms_reversion2/page_revisions.py:25
+msgid "Autocreated because of reversion of unsaved draft"
+msgstr ""
+"Automatisch erstellt wegen Versionierung eines ungespeicherten Entwurfs"
+
+#: djangocms_reversion2/page_revisions.py:144
+msgid "Revision creation failed"
+msgstr "Versionierung ist fehlgeschlagen"
+
+#: djangocms_reversion2/templates/admin/bin_menu.html:24
+msgid "Home"
+msgstr "Home"
+
+#: djangocms_reversion2/templates/admin/bin_menu.html:34
+msgid "Softroot"
+msgstr "Softroot"
+
+#: djangocms_reversion2/templates/admin/bin_menu.html:46
+#, python-format
+msgid "Application: %(apphook)s"
+msgstr "Application: %(apphook)s"
+
+#: djangocms_reversion2/templates/admin/bin_menu.html:72
+msgid "Options"
+msgstr "Optionen"
+
+#: djangocms_reversion2/templates/admin/bin_menu.html:81
+#: djangocms_reversion2/templates/admin/bin_menu.html:83
+msgid "Delete"
+msgstr "Löschen"
+
+#: djangocms_reversion2/templates/admin/diff.html:64
+msgid "Revert to"
+msgstr "Zurücksetzen auf"
+
+#: djangocms_reversion2/templates/admin/diff.html:83
+#: djangocms_reversion2/templates/admin/diff.html:106
+msgid "Revision "
+msgstr "Version "
+
+#: djangocms_reversion2/templates/admin/diff.html:86
+#: djangocms_reversion2/templates/admin/diff.html:109
+msgid "rendered version"
+msgstr "Gerenderte Version"
+
+#: djangocms_reversion2/templates/admin/diff.html:90
+#: djangocms_reversion2/templates/admin/diff.html:92
+#: djangocms_reversion2/templates/admin/diff.html:116
+#: djangocms_reversion2/templates/admin/diff.html:118
+msgid "Last editor"
+msgstr "Letzter Editor"
+
+#: djangocms_reversion2/templates/admin/diff.html:94
+msgid "Saved state"
+msgstr "Gespeicherter Zustand"
+
+#: djangocms_reversion2/templates/admin/diff.html:104
+msgid "current version of the page (not revision)"
+msgstr "Aktueller Zustand der Seite (nicht Seiten-Version)"
+
+#: djangocms_reversion2/templates/admin/diff.html:120
+msgid "Diff to left side"
+msgstr "Unterschied zur linken Seite"
+
+#: djangocms_reversion2/templates/admin/diff.html:132
+msgid "Placeholder"
+msgstr "Platzhalter"
+
+#: djangocms_reversion2/templates/admin/diff.html:133
+msgid "Changes"
+msgstr "Änderungen"
+
+#: djangocms_reversion2/templates/admin/diff_old.html:6
+msgid "Placeholders with changes"
+msgstr "Platzhalter mit Änderungen"
+
+#: djangocms_reversion2/templates/admin/diff_old.html:19
+msgid "Info"
+msgstr "Info"
+
+#: djangocms_reversion2/templates/admin/diff_old.html:21
+msgid ""
+"\n"
+"        Reverting to this page revision will apply the above changes: green "
+"sections will be inserted,\n"
+"        red sections will be deleted!\n"
+"    "
+msgstr ""
+"\n"
+"Auf diese Seiten-Version zurücksetzen wird die Änderungen von oben anwenden."
+"Grüne Bereiche werden eingefügt.Rote Bereiche werden entfernt."
+
+#: djangocms_reversion2/templates/admin/view_revision.html:8
+msgid "go back"
+msgstr "Zurück"
+
+#: djangocms_reversion2/templates/admin/view_revision.html:8
+msgid "This is an archieved version of page"
+msgstr "Das ist eine archivierte Version der Seite"
