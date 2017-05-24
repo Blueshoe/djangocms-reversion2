@@ -102,7 +102,6 @@ def revise_page(page, language):
             copy_plugins_to(plugins, ph, to_language=language)
 
     # TODO dig deep and find all implications of this and find out what do do when reversioning
-    # TODO: Does not work?
     extension_pool.copy_extensions(Page.objects.get(pk=origin_id), new_page, languages=[language])
 
     new_page = new_page.move(version_page_root, pos="last-child")
