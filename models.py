@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
+from cms import constants
 from django.db import models
-from django.utils.encoding import python_2_unicode_compatible
+from django.utils.encoding import python_2_unicode_compatible, force_text
 from django.utils.translation import ugettext_lazy as _, get_language
 
 from treebeard.mp_tree import MP_Node
@@ -27,6 +28,7 @@ class PageVersion(MP_Node):
                                 help_text=_('Only new PageVersions are not dirty of if a page has been reverted to a '
                                             'PageVersion.'))
     language = models.CharField(_('Language'), blank=True, max_length=20)
+    owner = models.CharField(_("owner"), max_length=constants.PAGE_USERNAME_MAX_LENGTH, editable=False)
 
     def get_title(self):
         return self.title or 'implement'  # TODO
@@ -36,6 +38,22 @@ class PageVersion(MP_Node):
         if draft.page_versions.filter(active=True, dirty=False, language=language).count() > 0:
             raise AssertionError('not dirty')
 
+        # owner of the PageVersion is the last editor
+        from cms.utils.permissions import get_current_user
+        user = get_current_user()
+        if user:
+            try:
+                owner = force_text(user)
+            except AttributeError:
+                # AnonymousUser may not have USERNAME_FIELD
+                owner = "anonymous"
+            else:
+                # limit changed_by and created_by to avoid problems with Custom User Model
+                if len(owner) > constants.PAGE_USERNAME_MAX_LENGTH:
+                    changed_by = u'{0}... (id={1})'.format(owner[:constants.PAGE_USERNAME_MAX_LENGTH - 15], user.pk)
+        else:
+            owner = "script"
+
         # draft.page_versions.update(clean=False)
         hidden_page = revise_page(draft, language)
         if not version_parent and draft.page_versions.filter(language=language).exists():
@@ -43,11 +61,12 @@ class PageVersion(MP_Node):
 
         if version_parent:
             page_version = version_parent.add_child(hidden_page=hidden_page, draft=draft, comment=comment, title=title,
-                                                    active=version_parent.active, language=language)
+                                                    active=version_parent.active, language=language, owner=owner)
             version_parent.deactivate()
         else:
             page_version = PageVersion.add_root(hidden_page=hidden_page, draft=draft, comment=comment, title=title,
-                                                active=True, language=language)
+                                                active=True, language=language, owner=owner)
+
         return page_version
 
     def save(self, **kwargs):

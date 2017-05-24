@@ -1,6 +1,9 @@
 Refactor the Reversion
 ======================
 
+[![Documentation Status](https://readthedocs.org/projects/djangocms-reversion2/badge/?version=latest)](http://djangocms-reversion2.readthedocs.io/en/latest/?badge=latest) 
+ 
+
 We don't want to use the Reversion backend anymore.
 Therefore we will persist the versioned pages in a second tree (MP_Tree).
 
