@@ -26,6 +26,7 @@ from django.template.loader import get_template
 from django.template.response import TemplateResponse
 from django.utils.translation import ugettext_lazy as _, ugettext
 from sekizai.context import SekizaiContext
+from django.conf import settings
 
 from djangocms_reversion2 import exporter
 from djangocms_reversion2.diff import create_placeholder_contents
@@ -35,7 +36,7 @@ from djangocms_reversion2.utils import revert_page, revise_all_pages
 
 BIN_NAMING_PREFIX = '.'
 BIN_PAGE_NAME = BIN_NAMING_PREFIX + 'Papierkorb'
-BIN_PAGE_LANGUAGE = 'de'
+BIN_PAGE_LANGUAGE = settings.LANGUAGE_CODE
 BIN_BUCKET_NAMING = BIN_NAMING_PREFIX + 'Eimer-%d.%m.%Y'
 
 
