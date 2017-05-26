@@ -1,6 +1,32 @@
 Permissions
 ===========
 
+That's how we need it?
+ - users that edit a page can't change it but make a new branch where they work on and afterwards make a pull request to
+   the page owner
+
+That's how we want it:
+ 1) The external person creates a new page version from the page **He has to be able to view the page!**
+ 2) external can work on his page separately
+ 3) either ask an admin to 'revert' to this page version or use the djangocms-moderation plugin
+
+Integration with djangocms-moderation
+-------------------------------------
+
+This plugin replaces the "publish button" with a "moderation request button".
+Then a "moderation workflow" is attached to the page. Now the edit functions of the page are blocked until the workflow
+is either rejected or approved.
+
+1) We still hide the toolbar in the "edit page version" mode but add another button that triggers a special workflow
+2) When that workflow has finished
+ 3) Here comes the tricky part with djangocms-moderation -> they are building a workflow for approval of page publishing
+        -> we would like to use this in future releases. This might look like this:
+                - the external starts a new moderation request on the edited hidden_page
+                - we use @receiver(post_obj_operation) signal handler to catch the end of the workflow
+                - instead of clicking the publish button on the hidden_page (we make a rollback of the connected draft)
+
+You have to add CMS_PERMISSIONS = True to your settings.py!
+
 View
 ----
 If a user can view a page he can view its page versions.
