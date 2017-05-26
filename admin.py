@@ -28,11 +28,12 @@ from django.utils.translation import ugettext_lazy as _, ugettext
 from sekizai.context import SekizaiContext
 from django.conf import settings
 
-from djangocms_reversion2 import exporter
-from djangocms_reversion2.diff import create_placeholder_contents
-from djangocms_reversion2.forms import PageVersionForm
-from djangocms_reversion2.models import PageVersion
-from djangocms_reversion2.utils import revert_page, revise_all_pages
+from cms.utils.permissions import get_current_user, has_page_permission
+
+from .diff import create_placeholder_contents
+from .forms import PageVersionForm
+from .models import PageVersion
+from .utils import revert_page, revise_all_pages
 
 BIN_NAMING_PREFIX = '.'
 BIN_PAGE_NAME = BIN_NAMING_PREFIX + 'Papierkorb'
@@ -92,8 +93,18 @@ class PageVersionAdmin(admin.ModelAdmin):
         language = request.GET.get('language')
         page_version = PageVersion.objects.get(id=revision_pk)
 
-        page_absolute_url = page_version.hidden_page.get_draft_url(language=language)
+        # check if the current user may view the revision
+        # -> if the user may see the page
+        user = get_current_user()
+        if not has_page_permission(user, page_version.draft, 'view_page'):
+            messages.error(request, _('Missing permission to view this page.'))
+            prev = request.META.get('HTTP_REFERER')
+            if prev:
+                return redirect(prev)
+            else:
+                raise Http404
 
+        page_absolute_url = page_version.hidden_page.get_draft_url(language=language)
 
         context = SekizaiContext({
             'page_version': page_version,
@@ -121,7 +132,6 @@ class PageVersionAdmin(admin.ModelAdmin):
             page_id=self.request.current_page.id,
             lang=self.current_lang or ''
         )
-
 
     def revert(self, request, **kwargs):
         page_pk = kwargs.get('page_pk')
