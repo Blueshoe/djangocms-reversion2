@@ -10,6 +10,19 @@ Welcome to djangocms_reversion2's documentation!
    :maxdepth: 2
    :caption: Contents:
 
+   topics/Installation
+   topics/Permissions
+
+=====================
+Django-CMS Reversion2
+=====================
+
+
+**Django-CMS Reversion2** is a plugin for **Django CMS** which aims to provide a revision system for
+**Django-CMS**.
+
+As long as this plugin is under development it shall be used as git submodule.
+
 
 
 Indices and tables
