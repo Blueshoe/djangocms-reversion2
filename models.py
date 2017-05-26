@@ -9,6 +9,8 @@ from treebeard.mp_tree import MP_Node
 
 from .utils import revise_page
 
+from django.contrib.contenttypes.models import ContentType
+from django.contrib.auth.models import Permission
 
 @python_2_unicode_compatible
 class PageVersion(MP_Node):
@@ -75,3 +77,22 @@ class PageVersion(MP_Node):
         if self.title:
             return self.title
         return self.hidden_page.get_title()
+
+    class Meta:
+        # example: user.has_perm('djangocms_reversion2.view_page_version')
+        permissions = (
+            ('view_page_version', _('permission to view the page version')),
+            ('delete_page_version', _('permission to delete the page version')),
+            ('create_page_version', _('permission to create the page version')),
+            ('revert_to_page_version', _('permission to revert a page to the page version')),
+        )
+        # TODO: what kind of default permissions do we want?
+        default_permissions = ('add', 'change', 'delete', 'view_page_version', 'create_page_version')
+
+
+# content_type = ContentType.objects.get_for_model(PageVersion)
+# permission = Permission.objects.create(
+#     codename='can_create',
+#     name='Can Publish Posts',
+#     content_type=content_type,
+# )
