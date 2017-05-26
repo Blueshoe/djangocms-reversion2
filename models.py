@@ -30,7 +30,7 @@ class PageVersion(MP_Node):
                                 help_text=_('Only new PageVersions are not dirty of if a page has been reverted to a '
                                             'PageVersion.'))
     language = models.CharField(_('Language'), blank=True, max_length=20)
-    owner = models.CharField(_("owner"), max_length=constants.PAGE_USERNAME_MAX_LENGTH, editable=False)
+    owner = models.CharField(_("owner"), max_length=constants.PAGE_USERNAME_MAX_LENGTH, editable=False, default='script')
 
     def get_title(self):
         return self.title or 'implement'  # TODO
