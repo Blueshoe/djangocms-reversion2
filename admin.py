@@ -11,6 +11,8 @@ from cms.models import Page, Title, EmptyTitle
 from cms.utils import get_cms_setting, get_language_from_request, get_language_list, i18n
 from cms.utils import page_permissions
 from collections import defaultdict
+
+from cms.utils.page_permissions import user_can_view_page, user_can_publish_page, user_can_change_page
 from django.conf.urls import url
 from django.contrib import admin, messages
 from django.contrib.admin.options import IS_POPUP_VAR
@@ -96,7 +98,7 @@ class PageVersionAdmin(admin.ModelAdmin):
         # check if the current user may view the revision
         # -> if the user may see the page
         user = get_current_user()
-        if not has_page_permission(user, page_version.draft, 'view_page'):
+        if not user_can_view_page(user, page_version.draft):
             messages.error(request, _('Missing permission to view this page.'))
             prev = request.META.get('HTTP_REFERER')
             if prev:
@@ -141,10 +143,22 @@ class PageVersionAdmin(admin.ModelAdmin):
         page = get_object_or_404(Page, pk=page_pk)
         page_version = get_object_or_404(PageVersion, pk=to_version_pk)
 
+        # when the page_version you want to use as target and the current page mismatch
+        # -> don't know why this should happen (but we can keep it as a guard)
         if not page_version.draft == page:
             raise Http404
 
-        # TODO check if page is revised in current state
+        # check if the current user is allowed to revert the page by checking the page publish permission
+        user = get_current_user()
+        if not user_can_publish_page(user, page_version.draft):
+            messages.error(request, _('Missing permission to publish this page which is necessary for the rollback'))
+            prev = request.META.get('HTTP_REFERER')
+            if prev:
+                return redirect(prev)
+            else:
+                raise Http404
+
+        # TODO check if page is revised in current state (-> use the dirty flag of the page version)
         #     if not revert_page(page_revision, request):
         #         messages.info(request, u'Page is already in this revision!')
         #         prev = request.META.get('HTTP_REFERER')
@@ -163,17 +177,23 @@ class PageVersionAdmin(admin.ModelAdmin):
         return self.render_close_frame()
 
     def batch_add(self, request, **kwargs):
+        # only superusers are allowed to trigger this
+        user = get_current_user()
+        if not user.superuser:
+            messages.error(request, _('Only superusers are allowed to use the batch page revision creation mode'))
+        else:
+            num = revise_all_pages()
+            messages.info(request, _(u'{num} unversioned pages have been versioned.').format(num=num))
+
         pk = kwargs.get('pk')
         language = request.GET.get('language')
-        num = revise_all_pages()
-        messages.info(request, _(u'{num} unversioned pages have been versioned.').format(num=num))
         page = Page.objects.get(pk=pk)
         return redirect(page.get_absolute_url(language), permanent=True)
 
     def diff_view(self, request, **kwargs):
-        # view which shows a revision on the left and one on the right
+        # view that shows a revision on the left and one on the right
         # if the right revision has value zero: the current page is used!
-        # -> page id is only neccessary in the utter case
+        # -> page id is only necessary in the utter case
         # if the comparison_pk is zero: the latest version is used
         # comparison_pk and base_pk are primary keys for *pages*!
 
@@ -192,6 +212,17 @@ class PageVersionAdmin(admin.ModelAdmin):
 
         # get the draft we are talking about
         page_draft = get_object_or_404(Page, pk=page_pk).get_draft_object()
+
+        # check if the current user may view the revision
+        # -> if the user may see the page
+        user = get_current_user()
+        if not user_can_view_page(user, page_draft):
+            messages.error(request, _('Missing permission to view this page.'))
+            prev = request.META.get('HTTP_REFERER')
+            if prev:
+                return redirect(prev)
+            else:
+                raise Http404
 
         # the right panel has id=0
         # -> use the draft of the page
@@ -268,6 +299,18 @@ class PageVersionAdmin(admin.ModelAdmin):
         language = request.GET.get('language')
         draft_pk = request.GET.get('draft')
         page = get_object_or_404(Page, pk=draft_pk)
+
+        # check if the current user may view the revision
+        # -> if the user may see the page
+        user = get_current_user()
+        if not user_can_change_page(user, page):
+            messages.error(request, _('Missing permission to edit this page which is necessary in order to create a '
+                                      'page version.'))
+            prev = request.META.get('HTTP_REFERER')
+            if prev:
+                return redirect(prev)
+            else:
+                raise Http404
 
         if page.page_versions.filter(active=True, dirty=False, language=language).count() > 0:
             messages.info(request, _('This page is already revised.'))
