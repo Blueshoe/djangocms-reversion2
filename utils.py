@@ -64,7 +64,7 @@ def revise_page(page, language):
 
     Note for issue #1166: when copying pages there is no need to check for
     conflicting URLs as pages are copied unpublished.
-    -> That's wrong -> get_queryset_by_path(...).get() will fail
+    --> get_queryset_by_path(...).get() will fail
     """
     if not page.publisher_is_draft:
         raise PublicIsUnmodifiable("revise page is not allowed for public pages")
@@ -90,10 +90,9 @@ def revise_page(page, language):
 
     print(new_page.title_set.all())
 
-
     # copy the placeholders (and plugins on those placeholders!)
     for ph in Placeholder.objects.filter(page=origin_id).iterator():
-        plugins = ph.get_plugins_list()
+        plugins = ph.get_plugins_list(language=language)
         try:
             # why might the placeholder already exist?
             ph = new_page.placeholders.get(slot=ph.slot)
@@ -135,11 +134,10 @@ def revert_page(page_version, language):
 def _copy_titles(source, target, language):
     """
     Copy all the titles to a new page (which must have a pk).
+    The title has a published attribute that needs to be set to false.
+        There is also the publisher_is_draft attribute
     :param target: The page where the new titles should be stored
     """
-    #
-    # source = Page()
-    # target = Page()
 
     assert source.publisher_is_draft
     assert target.publisher_is_draft
@@ -159,6 +157,7 @@ def _copy_titles(source, target, language):
         title.has_url_overwrite = getattr(target_title, 'has_url_overwrite', False)
         title.redirect = getattr(target_title, 'redirect', None)
         title.publisher_public_id = getattr(target_title, 'publisher_public_id', None)
+        # has to be false
         title.published = getattr(target_title, 'published', False)
 
         # dirty since we are overriding current draft
