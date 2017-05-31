@@ -17,6 +17,9 @@ This plugin replaces the "publish button" with a "moderation request button".
 Then a "moderation workflow" is attached to the page. Now the edit functions of the page are blocked until the workflow
 is either rejected or approved.
 
+How we could use this:
+......................
+
 1) We still hide the toolbar in the "edit page version" mode but add another button that triggers a special workflow
 2) When that workflow has finished
  3) Here comes the tricky part with djangocms-moderation -> they are building a workflow for approval of page publishing
@@ -25,7 +28,15 @@ is either rejected or approved.
                 - we use @receiver(post_obj_operation) signal handler to catch the end of the workflow
                 - instead of clicking the publish button on the hidden_page (we make a rollback of the connected draft)
 
-You have to add CMS_PERMISSIONS = True to your settings.py!
+**You have to add CMS_PERMISSIONS = True to your settings.py!**
+
+Implementation of the current permission system
+===============================================
+
+We make use of the cms page permissions because they are already there and we don't get any inconsistencies with custom
+permissions.
+Every page has a :code:`pagepermission_set`. If a new page version is created all of these permissions have to be
+copied to the hidden_page of the page version.
 
 View
 ----
@@ -62,8 +73,8 @@ An admin can rollback a page if he has any global page permission
 (cms.page_global_permission.can_change_page_global_permission)
 
 
-How the check works
--------------------
+Example: How the check works
+----------------------------
 
 .. code-block:: python
 

@@ -13,6 +13,7 @@ from cms import api, constants
 from cms.exceptions import PublicIsUnmodifiable
 from cms.extensions import extension_pool
 from cms.models import Page, Placeholder, Title, menu_pool, copy_plugins_to
+from cms.utils.conf import get_cms_setting
 from django.db import IntegrityError
 from django.db import transaction
 
@@ -33,7 +34,7 @@ VERSION_FIELD_DEFAULTS = {
         'publisher_public': None,
         'has_url_overwrite': False,
         'slug': page_utils.get_available_slug,
-    },
+    }
 }
 
 
@@ -102,10 +103,19 @@ def revise_page(page, language):
         if plugins:
             copy_plugins_to(plugins, ph, to_language=language)
 
-    # TODO dig deep and find all implications of this and find out what do do when reversioning
     extension_pool.copy_extensions(Page.objects.get(pk=origin_id), new_page, languages=[language])
 
     new_page = new_page.move(version_page_root, pos="last-child")
+
+    # Copy the permissions from the old page to the new page
+    # TODO: get parent permission
+    # so far this only covers permissions that are directly attached to a page, not its descendants
+    if get_cms_setting('PERMISSION'):
+        new_permissions = []
+        origin_page = Page.objects.get(pk=origin_id)
+        # copy all permissions to hidden_page and replace the page
+        for perm in origin_page.pagepermission_set.iterator():
+            new_permissions.append(_copy_model(perm, page=new_page))
 
     # invalidate the menu for this site
     menu_pool.clear(site_id=site.pk)
