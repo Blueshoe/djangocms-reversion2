@@ -1,14 +1,11 @@
 Permissions
 ===========
 
-That's how we need it?
- - users that edit a page can't change it but make a new branch where they work on and afterwards make a pull request to
-   the page owner
+Djangocms_reversion2 doesn't introduce new permissions. It makes use of the page permissions of djangocms.
 
-That's how we want it:
- 1) The external person creates a new page version from the page **He has to be able to view the page!**
- 2) external can work on his page separately
- 3) either ask an admin to 'revert' to this page version or use the djangocms-moderation plugin
+Activate djangocms page permissions: **You have to add CMS_PERMISSIONS = True to your settings.py!**
+
+The natural intuition is: A person that can edit a page can also edit PageVersions and so on.
 
 Integration with djangocms-moderation
 -------------------------------------
@@ -28,19 +25,33 @@ How we could use this:
                 - we use @receiver(post_obj_operation) signal handler to catch the end of the workflow
                 - instead of clicking the publish button on the hidden_page (we make a rollback of the connected draft)
 
-**You have to add CMS_PERMISSIONS = True to your settings.py!**
-
 Implementation of the current permission system
 ===============================================
 
 We make use of the cms page permissions because they are already there and we don't get any inconsistencies with custom
 permissions.
 Every page has a :code:`pagepermission_set`. If a new page version is created all of these permissions have to be
-copied to the hidden_page of the page version.
+copied to the hidden_page of the page version. But there are also permissions that can be inherited from parent.
+
+Therefore we use :code:`utils.inherited_permissions(page)` to obtain all relevant inherited page permissions,
+then we have to transform them a little bit. I am talking about the following to cases where the permission is
+explicitly set to only affect the children or descendants.
+
+We change the grant_on attribute of the copied permission in the left case to the right value:
+ - ACCESS_DESCENDANTS: ACCESS_PAGE_AND_DESCENDANTS,
+ - ACCESS_CHILDREN: ACCESS_PAGE
+
+Caution
+-------
+
+As a consequence, if you make changes to the permissions of your original page they will currently not be applied to
+the page versions. Example: The permissions of a page are removed for a person. That person could still access the
+PageVersions of the past.
+
 
 View
 ----
-If a user can view a page he can view its page versions.
+If a user can view a page she or he can view its page versions.
 
 
 Creation
