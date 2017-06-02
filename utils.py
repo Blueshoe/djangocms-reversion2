@@ -12,10 +12,13 @@ from django.conf import settings
 from cms import api, constants
 from cms.exceptions import PublicIsUnmodifiable
 from cms.extensions import extension_pool
-from cms.models import Page, Placeholder, Title, menu_pool, copy_plugins_to
+from cms.models import Page, Placeholder, Title, menu_pool, copy_plugins_to, Q, ACCESS_DESCENDANTS, \
+    ACCESS_PAGE_AND_DESCENDANTS, ACCESS_CHILDREN, ACCESS_PAGE_AND_CHILDREN, ACCESS_PAGE, PagePermission
 from cms.utils.conf import get_cms_setting
 from django.db import IntegrityError
 from django.db import transaction
+
+
 
 VERSION_ROOT_TITLE = '.~VERSIONS'
 
@@ -107,19 +110,50 @@ def revise_page(page, language):
 
     new_page = new_page.move(version_page_root, pos="last-child")
 
-    # Copy the permissions from the old page to the new page
-    # TODO: get parent permission
-    # so far this only covers permissions that are directly attached to a page, not its descendants
-    # if get_cms_setting('PERMISSION'):
-    #     new_permissions = []
-    #     origin_page = Page.objects.get(pk=origin_id)
-    #     # copy all permissions to hidden_page and replace the page
-    #     for perm in origin_page.pagepermission_set.iterator():
-    #         new_permissions.append(_copy_model(perm, page=new_page))
+    # Copy the permissions from the old page and its parents to the new page
+
+    # MAP the parent permission to new child permissions
+    mapping = {
+        ACCESS_DESCENDANTS: ACCESS_PAGE_AND_DESCENDANTS,
+        ACCESS_CHILDREN: ACCESS_PAGE
+    }
+    # for_page sadly doesn't work as expected
+    if get_cms_setting('PERMISSION'):
+        origin_page = Page.objects.get(pk=origin_id)
+        # store the new permissions
+        new_permissions = []
+        # Copy page's permissions
+        for perm in origin_page.pagepermission_set.all():
+            new_permissions.append(_copy_model(perm, page=new_page))
+        # the permission of all relevant parents
+        perms = inherited_permissions(origin_page)
+        for perm in perms:
+            latest = _copy_model(perm, page=new_page)
+            if latest.grant_on in mapping.keys():
+                new_permissions.append(latest)
+                # apply the mapping (see some lines above)
+                latest.grant_on = mapping[latest.grant_on]
+                latest.save()
 
     # invalidate the menu for this site
     menu_pool.clear(site_id=site.pk)
     return new_page
+
+
+def inherited_permissions(page):
+    """Returns queryset containing all instances somehow connected to given
+    page.
+    """
+    paths = [
+        page.path[0:pos]
+        for pos in range(0, len(page.path), page.steplen)[1:]
+    ]
+    parents = Q(page__path__in=paths) & (Q(grant_on=ACCESS_DESCENDANTS) | Q(grant_on=ACCESS_PAGE_AND_DESCENDANTS))
+    direct_parents = Q(page__pk=page.parent_id) & (Q(grant_on=ACCESS_CHILDREN) | Q(grant_on=ACCESS_PAGE_AND_CHILDREN))
+    #page_qs = Q(page=page) & (Q(grant_on=ACCESS_PAGE_AND_DESCENDANTS) | Q(grant_on=ACCESS_PAGE_AND_CHILDREN) |
+    #                          Q(grant_on=ACCESS_PAGE))
+    query = (parents | direct_parents)
+    return PagePermission.objects.filter(query).order_by('-page__depth')
 
 
 def revert_page(page_version, language):
