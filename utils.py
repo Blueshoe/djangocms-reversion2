@@ -110,12 +110,12 @@ def revise_page(page, language):
     # Copy the permissions from the old page to the new page
     # TODO: get parent permission
     # so far this only covers permissions that are directly attached to a page, not its descendants
-    if get_cms_setting('PERMISSION'):
-        new_permissions = []
-        origin_page = Page.objects.get(pk=origin_id)
-        # copy all permissions to hidden_page and replace the page
-        for perm in origin_page.pagepermission_set.iterator():
-            new_permissions.append(_copy_model(perm, page=new_page))
+    # if get_cms_setting('PERMISSION'):
+    #     new_permissions = []
+    #     origin_page = Page.objects.get(pk=origin_id)
+    #     # copy all permissions to hidden_page and replace the page
+    #     for perm in origin_page.pagepermission_set.iterator():
+    #         new_permissions.append(_copy_model(perm, page=new_page))
 
     # invalidate the menu for this site
     menu_pool.clear(site_id=site.pk)
@@ -177,6 +177,15 @@ def _copy_titles(source, target, language):
 
     if old_titles:
         Title.objects.filter(id__in=old_titles.values()).delete()
+
+
+def is_version_page(page):
+    version_page_root = get_version_page_root(page.site)
+    return page.is_descendant_of(version_page_root)
+
+
+def get_draft_of_version_page(page):
+    return page.page_version.draft
 
 
 def revise_all_pages():

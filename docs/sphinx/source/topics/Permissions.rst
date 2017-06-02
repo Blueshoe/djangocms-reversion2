@@ -22,7 +22,7 @@ How we could use this:
 
 1) We still hide the toolbar in the "edit page version" mode but add another button that triggers a special workflow
 2) When that workflow has finished
- 3) Here comes the tricky part with djangocms-moderation -> they are building a workflow for approval of page publishing
+3) Here comes the tricky part with djangocms-moderation -> they are building a workflow for approval of page publishing
         -> we would like to use this in future releases. This might look like this:
                 - the external starts a new moderation request on the edited hidden_page
                 - we use @receiver(post_obj_operation) signal handler to catch the end of the workflow
