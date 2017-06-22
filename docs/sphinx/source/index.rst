@@ -36,6 +36,8 @@ Contents
    topics/Settings
    topics/Trees
    topics/Permissions
+   topics/Tests
+   topics/Todos
 
 Disclaimer
 ----------

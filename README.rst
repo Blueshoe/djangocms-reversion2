@@ -9,9 +9,9 @@ Django-CMS Reversion2
 **UNSTABLE**
 
 **Django-CMS Reversion2** is a plugin for **Django CMS** which aims to provide a revision system for
-**Django-CMS**.
+Django-CMS.
 
-These are the **core features** of Django-CMS Reversion2:
+These are the core features of Django-CMS Reversion2:
  - **Create PageVersion:** Revisions for page drafts in given language (only if changes were made see :code:`dirty` flag)
  - **Revert to PageVersion:** Reverting to any previous revision of page
  - **Trash-Bin:** Moves deleted pages to a hidden PageRoot before really deleting it

@@ -6,8 +6,8 @@ from django.utils.timezone import now
 from djangocms_text_ckeditor.cms_plugins import TextPlugin
 from reversion.models import Revision
 
-from djangocms_reversion2.models import PageMarker, HtmlContent
-from djangocms_reversion2.page_revisions import revise_page, placeholder_html
+from djangocms_reversion2.diff import placeholder_html
+from djangocms_reversion2.utils import revise_page
 
 
 class DR2BaseTestCase(object):
@@ -20,14 +20,12 @@ class DR2BaseTestCase(object):
         self.request = self.get_request()
         self.add_text(self.page)
         self.page_revision = revise_page(
-            self.page, language=self.LANGUAGE, user=self.user, comment=self.COMMENT)
+            self.page, language=self.LANGUAGE)
 
     def tearDown(self):
         self.page.delete()
         self.user.delete()
         Revision.objects.all().delete()
-        PageMarker.objects.all().delete()
-        HtmlContent.objects.all().delete()
 
     def _create_user(self, username, is_staff=False, is_superuser=False, is_active=True):
         """
@@ -65,7 +63,7 @@ class DR2BaseTestCase(object):
         return admin
 
     def create_page(self, name=None, template=None, language=None):
-        name = name or'home'
+        name = name or 'home'
         template = template or 'template_1.html'
         language = language or 'de'
         return create_page(name, template, language, created_by=self.get_superuser().username)
