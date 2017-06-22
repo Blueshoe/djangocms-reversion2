@@ -37,10 +37,13 @@ from .forms import PageVersionForm
 from .models import PageVersion
 from .utils import revert_page, revise_all_pages
 
-BIN_NAMING_PREFIX = '.'
-BIN_PAGE_NAME = BIN_NAMING_PREFIX + 'Papierkorb'
-BIN_PAGE_LANGUAGE = settings.LANGUAGE_CODE
-BIN_BUCKET_NAMING = BIN_NAMING_PREFIX + 'Eimer-%d.%m.%Y'
+BIN_NAMING_PREFIX = getattr(settings, 'DJANGOCMS_REVERSION2_BIN_NAMING_PREFIX', None) or '.'
+BIN_PAGE_NAME_WITHOUT_BEGIN = getattr(settings, 'DJANGOCMS_REVERSION2_BIN_NAME', None) or 'Papierkorb'
+BIN_PAGE_NAME = BIN_NAMING_PREFIX + BIN_PAGE_NAME_WITHOUT_BEGIN
+BIN_PAGE_LANGUAGE = getattr(settings, 'LANGUAGE_CODE')
+
+BIN_BUCKET_NAMING = getattr(settings, 'DJANGOCMS_REVERSION2_BIN_BUCKET_NAMING', None) or 'Bucket-%d.%m.%Y'
+BIN_BUCKET_NAMING = BIN_NAMING_PREFIX + BIN_BUCKET_NAMING
 
 
 class PageVersionAdmin(admin.ModelAdmin):
@@ -109,8 +112,9 @@ class PageVersionAdmin(admin.ModelAdmin):
         page_absolute_url = page_version.hidden_page.get_draft_url(language=language)
 
         context = SekizaiContext({
+            'render_page': page_version.hidden_page,
             'page_version': page_version,
-            'is_popup': True,
+            'is_popup': False,
             'request': request,
             'page_absolute_url': page_absolute_url
         })

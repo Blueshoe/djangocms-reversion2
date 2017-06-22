@@ -16,47 +16,12 @@ from django.utils.functional import cached_property
 import reversion
 from sekizai.context import SekizaiContext
 
-from djangocms_reversion2.models import PageRevision, PageMarker, PageRevisionPlaceholderContent, HtmlContent
 from reversion.signals import post_revision_commit
 
 
 MAX_ROOT_MARK = 'max root mark'
 BATCH_CREATE_COMMENT = _('Created in batch')
 AUTO_REVISION_COMMENT = _('Autocreated because of reversion of unsaved draft')
-
-
-def revise_page(page, language=None, user=None, comment=''):
-    if language and is_revised(page, language):
-        return None
-    prc = PageRevisionCreator(page.id, language, user=user, comment=comment)
-    return prc.page_revision
-
-
-def revert_page(page_revision, request):
-    user, page, language = request.user, page_revision.page, page_revision.language
-    # if the current state of the page is not captured in a revision, we create one
-    try:
-        marker = page.page_markers.get(language=language)
-    except PageMarker.DoesNotExist:
-        prc = PageRevisionCreator(page.id, language, request, user=user, comment=AUTO_REVISION_COMMENT)
-        auto_page_revision = prc.create_page_revision()
-        marker = mark_page_revised(auto_page_revision)
-    else:
-        if page_revision == marker.page_revision:
-            return None
-
-    with transaction.atomic():
-        # now we can revert to the given revision ...
-        CMSPlugin.objects.filter(placeholder__page=page_revision.page, language=language).update(placeholder=None)
-
-    with transaction.atomic():
-        page_revision.revision.revert()
-
-    # ... and update the marker's revision to the new state of affairs
-    with transaction.atomic():
-        marker.page_revision = page_revision
-        marker.save()
-    return marker
 
 
 def update_max_root(plugins_qs=None):
@@ -77,21 +42,6 @@ def update_max_root(plugins_qs=None):
             max_root.delete()
         return CMSPlugin.objects.create(plugin_type=MAX_ROOT_MARK, language=MAX_ROOT_MARK)
     return None
-
-
-def mark_page_revised(page_revision):
-    return PageMarker.objects.get_or_create(
-        page_id=page_revision.page_id,
-        language=page_revision.language,
-        page_revision=page_revision)[0]
-
-
-def unmark_page_revised(page_id, language):
-    PageMarker.objects.filter(page_id=page_id, language=language).delete()
-
-
-def is_revised(page, language):
-    return PageMarker.objects.filter(page=page, language=language).exists()
 
 
 class PageRevisionError(Exception):

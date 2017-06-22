@@ -32,6 +32,8 @@ Contents
 
    topics/Motivation
    topics/Installation
+   topics/Usage
+   topics/Settings
    topics/Trees
    topics/Permissions
 
