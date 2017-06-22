@@ -6,6 +6,10 @@ Django-CMS Reversion2
     :target: http://djangocms-reversion2.readthedocs.io/en/latest/?badge=latest
     :alt: Documentation Status
 
+.. image:: https://travis-ci.org/Blueshoe/djangocms-reversion2.svg?branch=master
+    :target: https://travis-ci.org/Blueshoe/djangocms-reversion2
+    :alt: Code analysis status
+
 **UNSTABLE**
 
 **Django-CMS Reversion2** is a plugin for **Django CMS** which aims to provide a revision system for

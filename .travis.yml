@@ -2,3 +2,14 @@ language: python
 sudo: false
 
 branches: master
+
+cache: pip
+install:
+  - pip install -r test_app/requirements.txt
+
+before_install:
+  - export DJANGO_SETTINGS_MODULE=configuration.settings
+  - export PYTHONPATH=$HOME/builds/Blueshoe/djangocms-reversion2
+
+script:
+  python test_app/manage.py test
