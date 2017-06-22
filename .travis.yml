@@ -14,7 +14,7 @@ before_install:
   - export PYTHONPATH=$PYTHONPATH:/home/travis
   - export PYTHONPATH=$PYTHONPATH:/home/travis/builds/Blueshoe
   - env
-  - ll
+  - ls -la
 
 script:
   python test_app/manage.py test
