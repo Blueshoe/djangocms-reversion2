@@ -9,7 +9,8 @@ install:
 
 before_install:
   - export DJANGO_SETTINGS_MODULE=configuration.settings
-  - export PYTHONPATH=$HOME/builds/Blueshoe/djangocms-reversion2
+  - export PYTHONPATH=$PYTHONPATH:$HOME/builds/Blueshoe/djangocms-reversion2
+  - export PYTHONPATH=$PYTHONPATH:$HOME/builds/Blueshoe/
 
 script:
   python test_app/manage.py test
