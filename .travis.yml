@@ -11,4 +11,5 @@ script:
   - env
   - ls -la
   - ls
-  - PYTHONPATH=$PYTHONPATH:/home/travis/build/Blueshoe/ python test_app/manage.py test
+  - pwd
+  - PYTHONPATH=$PYTHONPATH:/home/travis/build/Blueshoe/ python test_app/manage.py test test_app
