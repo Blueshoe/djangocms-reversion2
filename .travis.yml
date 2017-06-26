@@ -17,4 +17,5 @@ before_install:
   - ls -la
 
 script:
-  python test_app/manage.py test
+  - cd test_app
+  - PYTHONPATH=$PYTHONPATH:/home/travis/build/Blueshoe/ python manage.py test
