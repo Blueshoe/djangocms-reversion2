@@ -8,8 +8,4 @@ install:
 
 
 script:
-  - env
-  - ls -la
-  - ls
-  - pwd
-  - PYTHONPATH=$PYTHONPATH:/home/travis/build/Blueshoe/ python test_app/manage.py test test_app
+  - PYTHONPATH=$PYTHONPATH:/home/travis/build/Blueshoe/djangocms-reversion2/ python test_app/manage.py test test_app

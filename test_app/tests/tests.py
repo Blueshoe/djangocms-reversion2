@@ -3,7 +3,7 @@ from django.test import TestCase
 from djangocms_text_ckeditor.models import Text
 
 from djangocms_reversion2.page_revisions import AUTO_REVISION_COMMENT
-from djangocms_reversion2.test_app.tests.testutils import DR2BaseTestCase
+from test_app.tests.testutils import DR2BaseTestCase
 
 
 class PageRevisionCreateTestCase(DR2BaseTestCase, TestCase):

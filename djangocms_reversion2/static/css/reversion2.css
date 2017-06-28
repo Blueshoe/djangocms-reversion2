@@ -1,0 +1,15 @@
+.reversion2_diff_rendered_view_button {
+}
+
+.reversion2_diff_rendered_preview_infobar {
+    position:fixed;
+    top:0;
+    left:0;
+    right:0;
+    background-color: rgba(255, 0, 0, 0.5);
+    z-index: 100000;
+}
+
+a.list-group-item {
+    color: black;
+}
