@@ -21,14 +21,14 @@ Create versions of pages
 
 Create PageVersion: Revisions for page drafts in given language (only if changes were made see :code:`dirty` flag)
 
-.. image:: docs/sphinx/build/source/img/add_page_version.png
+.. image:: https://raw.githubusercontent.com/Blueshoe/djangocms-reversion2/master/docs/sphinx/build/source/img/add_page_version.png
 
 View differences between versions of a page
 ...........................................
 
 Compare the current page with back-up versions.
 
-.. image:: docs/sphinx/build/source/img/diff-1.png
+.. image:: https://raw.githubusercontent.com/Blueshoe/djangocms-reversion2/master/docs/sphinx/build/source/img/diff-1.png
 
 
 Revert a page to a version
@@ -36,14 +36,14 @@ Revert a page to a version
 
 Revert to PageVersion: Reverting to any previous revision of page
 
-.. image:: docs/sphinx/build/source/img/diff_sidebar.png
+.. image:: https://raw.githubusercontent.com/Blueshoe/djangocms-reversion2/master/docs/sphinx/build/source/img/diff_sidebar.png
 
 Create a version for all 'unversioned' pages
 ............................................
 
 Trash bin: Moves deleted pages to a hidden PageRoot before really deleting it
 
-.. image:: docs/sphinx/build/source/img/batch_add.png
+.. image:: https://raw.githubusercontent.com/Blueshoe/djangocms-reversion2/master/docs/sphinx/build/source/img/batch_add.png
 
 Multiple editors
 ................
@@ -51,14 +51,14 @@ Multiple editors
 **Experimental feature.** All page version can be edited.
 Work on the hidden drafts of PageVersion in order to realize multi-editor workflow??
 
-.. image:: docs/sphinx/build/source/img/multi.png
+.. image:: https://raw.githubusercontent.com/Blueshoe/djangocms-reversion2/master/docs/sphinx/build/source/img/multi.png
 
 Trash bin for pages
 ...................
 
 Trash bin: Moves deleted pages to a hidden PageRoot before really deleting it
 
-.. image:: docs/sphinx/build/source/img/bucket.png
+.. image:: https://raw.githubusercontent.com/Blueshoe/djangocms-reversion2/master/docs/sphinx/build/source/img/bucket.png
 
 Permission system
 .................
