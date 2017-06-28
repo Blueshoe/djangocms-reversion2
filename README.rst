@@ -10,25 +10,72 @@ Django-CMS Reversion2
     :target: https://travis-ci.org/Blueshoe/djangocms-reversion2
     :alt: Code analysis status
 
-**UNSTABLE**
+UNSTABLE: We have tested this project locally but by now never used it in production.
 
-**Django-CMS Reversion2** is a plugin for **Django CMS** which aims to provide a revision system for
-Django-CMS.
+Features
+--------
+These are the core features of Django-CMS Reversion2
 
-These are the core features of Django-CMS Reversion2:
- - **Create PageVersion:** Revisions for page drafts in given language (only if changes were made see :code:`dirty` flag)
- - **Revert to PageVersion:** Reverting to any previous revision of page
- - **Trash-Bin:** Moves deleted pages to a hidden PageRoot before really deleting it
- - **Batch-mode:** Adds reversion for every page (only for superusers)
- - **Page Permissions**: Integrates with djangocms' pagepermissions
- - **Multi-editor**: Work on the hidden drafts of PageVersion in order to realize multi-editor workflow
+Create versions of pages
+........................
+
+Create PageVersion: Revisions for page drafts in given language (only if changes were made see :code:`dirty` flag)
+
+.. image:: docs/sphinx/build/source/img/add_page_version.png
+
+View differences between versions of a page
+...........................................
+
+Compare the current page with back-up versions.
+
+.. image:: docs/sphinx/build/source/img/diff-1.png
+
+
+Revert a page to a version
+..........................
+
+Revert to PageVersion: Reverting to any previous revision of page
+
+.. image:: docs/sphinx/build/source/img/diff_sidebar.png
+
+Create a version for all 'unversioned' pages
+............................................
+
+Trash bin: Moves deleted pages to a hidden PageRoot before really deleting it
+
+.. image:: docs/sphinx/build/source/img/batch_add.png
+
+Multiple editors
+................
+
+**Experimental feature.** All page version can be edited.
+Work on the hidden drafts of PageVersion in order to realize multi-editor workflow??
+
+.. image:: docs/sphinx/build/source/img/multi.png
+
+Trash bin for pages
+...................
+
+Trash bin: Moves deleted pages to a hidden PageRoot before really deleting it
+
+.. image:: docs/sphinx/build/source/img/bucket.png
+
+Permission system
+.................
+
+This plugin integrates with the django-cms permissions.
+
+ToDos
+-----
 
 To be implemented (see Issues on Github `<https://github.com/Blueshoe/djangocms-reversion2/issues>`_)
  - Auto-Revisions when reverting from unsaved drafts
  - Integration with *divio/djangocms_moderation* once they publish a stable release
  - Build a multi-editor djangocms_toolbar and disable buttons that make unwanted changes
 
-ToDo's
-------
+Disclaimer
+----------
+
+This is an experimental plugin.
 
 No software is perfect, everyone's code sucks. Feel free to suggest, criticize and/or contribute.

@@ -172,3 +172,7 @@ CMS_PLACEHOLDER_CONF = {
     #     'language_fallback': False,
     # },
 }
+
+# def run():
+#     from djangocms_helper import runner
+#     runner.cms('djangocms_reversion2')
