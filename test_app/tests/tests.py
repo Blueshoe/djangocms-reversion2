@@ -5,6 +5,12 @@ from djangocms_text_ckeditor.models import Text
 from djangocms_reversion2.page_revisions import AUTO_REVISION_COMMENT
 from test_app.tests.testutils import DR2BaseTestCase
 
+from djangocms_reversion2.models import PageVersion
+
+from djangocms_reversion2.utils import revert_page
+
+from djangocms_reversion2.signals import make_page_version_dirty
+
 
 class PageRevisionCreateTestCase(DR2BaseTestCase, TestCase):
     COMMENT = 'Test comment'
@@ -12,9 +18,49 @@ class PageRevisionCreateTestCase(DR2BaseTestCase, TestCase):
 
     def test_a_revise_page(self):
         try:
-            assert self.page_revision is not None
+            assert self.page_version is not None
         except AssertionError:
             self.fail('PageVersion creation failed')
+
+    def test_b_revise_page(self):
+        # create a page
+        draft = self.create_page(name='next', language=self.LANGUAGE).get_draft_object()
+        # create initial version
+        pv = PageVersion.create_version(draft, self.LANGUAGE, version_parent=None, comment='next', title='')
+        # we have a revised page containing the text 'initial'
+        try:
+            # we add the text 'next' to the page
+            self.add_text(draft, content=u"next")
+            assert 'next' in self.get_html(draft)
+        except AssertionError:
+            self.fail('could not add content')
+        try:
+            draft.refresh_from_db()
+            # we check that the the revision does not contain 'next'
+            assert 'next' not in self.get_html(draft.page_versions.last().hidden_page)
+        except AssertionError:
+            self.fail('content should not be added to an old revision')
+        try:
+            # now we create a new version
+            pv = PageVersion.create_version(draft, self.LANGUAGE, version_parent=None, comment='next', title='')
+        except AssertionError:
+            self.fail('The page is reported to be clean -> that is wrong')
+        try:
+            # this version should contain the new text
+            draft.refresh_from_db()
+            assert 'next' in self.get_html(pv.hidden_page)
+        except AssertionError:
+            self.fail('new content is not in the latest version')
+
+        try:
+            # now we revert to the old date
+            revert_page(draft.page_versions.first(), self.LANGUAGE)
+            assert 'next' not in self.get_html(draft)
+        except AssertionError:
+            self.fail('new content is still in the page')
+
+
+
 #
 #     def test_b_revise_page_fields(self):
 #         pr = PageRevision.objects.get(page_id=self.page.id, language=self.LANGUAGE)

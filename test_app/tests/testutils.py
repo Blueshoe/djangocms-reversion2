@@ -8,6 +8,9 @@ from reversion.models import Revision
 
 from djangocms_reversion2.diff import placeholder_html
 from djangocms_reversion2.utils import revise_page
+from djangocms_reversion2.models import PageVersion
+
+from djangocms_reversion2.signals import make_page_version_dirty
 
 
 class DR2BaseTestCase(object):
@@ -18,9 +21,9 @@ class DR2BaseTestCase(object):
         self.user = self.get_superuser()
         self.page = self.create_page()
         self.request = self.get_request()
-        self.add_text(self.page)
-        self.page_revision = revise_page(
-            self.page, language=self.LANGUAGE)
+        self.add_text(self.page, content=u"initial")
+        self.page_version = PageVersion.create_version(self.page.get_draft_object(), self.LANGUAGE,
+                                                       version_parent=None, comment='', title='')
 
     def tearDown(self):
         self.page.delete()
@@ -67,9 +70,10 @@ class DR2BaseTestCase(object):
         language = language or 'de'
         return create_page(name, template, language, created_by=self.get_superuser().username)
 
-    def add_text(self, page, n=3):
+    def add_text(self, page, n=1, content=u'example'):
         """
         Adds n text plugins to each placeholder in the page
+        :param content:
         :param page:
         :param n:
         :return: the created plugin instances
@@ -81,12 +85,17 @@ class DR2BaseTestCase(object):
                 for j in xrange(n):
                     plugin = add_plugin(
                         ph, TextPlugin, language,
-                        body=u'{language}: text {j} in {slot}\n'.format(
-                            language=language, j=j, slot=ph.slot
-                        )
+                        body=content
                     )
                     plugins.append(plugin)
+        make_page_version_dirty(page, self.LANGUAGE)
         return plugins
+
+    def get_html(self, page):
+        html = ""
+        for p in page.placeholders.iterator():
+            html += self.get_current_html(p)
+        return html
 
     def get_current_html(self, placeholder):
         return placeholder_html(placeholder, self.get_request(), self.LANGUAGE)
