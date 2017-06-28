@@ -28,7 +28,7 @@ View differences between versions of a page
 
 Compare the current page with back-up versions.
 
-.. image:: https://raw.githubusercontent.com/Blueshoe/djangocms-reversion2/master/docs/sphinx/source/img/diff-1.png
+.. image:: https://raw.githubusercontent.com/Blueshoe/djangocms-reversion2/master/docs/sphinx/source/img/diff_1.png
 
 
 Revert a page to a version
