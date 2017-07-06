@@ -19,7 +19,7 @@ env:
   - TOX_ENV=py34-dj19-cms33
 
 install:
-  - pip install tox  # coverage
+  - pip install tox coverage
 
 script:
   - tox -e $TOX_ENV
