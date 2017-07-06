@@ -13,10 +13,7 @@ from django.utils.encoding import smart_text as u
 from django.utils.translation import ugettext_lazy as _
 from django.utils.functional import cached_property
 
-import reversion
 from sekizai.context import SekizaiContext
-
-from reversion.signals import post_revision_commit
 
 
 MAX_ROOT_MARK = 'max root mark'

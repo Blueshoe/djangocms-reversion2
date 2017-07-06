@@ -21,11 +21,12 @@ CLASSIFIERS = [
     'Topic :: Software Development :: Libraries :: Application Frameworks',
 ]
 
+# ToDo: django>=1.8.17,<1.9 is <1.9 really a hard requirement?
 REQUIREMENTS = [
-    'django>=1.8.17,<1.9',
+    'django>=1.8.17',
     'django-cms>=3.4.3',
-    'diff-match-patch==20110725.1',
-    'django-sekizai==0.9.0'
+    'diff-match-patch>=20110725.1',
+    'django-sekizai>=0.9.0'
 ]
 
 setup(
@@ -41,4 +42,5 @@ setup(
     keywords=['django', 'Django CMS', 'version history', 'versioning',
               'reversion', 'revision', 'CMS', 'Blueshoe', 'basket', 'bin', 'revert'],
     classifiers=CLASSIFIERS,
+    test_suite='tests.settings.run',
 )
