@@ -1,17 +1,8 @@
 from cms.api import create_page
-from django.core.exceptions import ObjectDoesNotExist
-from django.test import TestCase
 from djangocms_helper.base_test import BaseTestCase
 
-from djangocms_reversion2.page_revisions import AUTO_REVISION_COMMENT
-from pytest import raises
-
-
 from djangocms_reversion2.models import PageVersion
-
 from djangocms_reversion2.utils import revert_page
-
-from djangocms_reversion2.signals import make_page_version_dirty
 
 import testutils
 

@@ -1,10 +1,8 @@
 # -*- coding: utf-8 -*-
 from cms.api import add_plugin
-from djangocms_helper.base_test import BaseTestCase
 from djangocms_text_ckeditor.cms_plugins import TextPlugin
 
 from djangocms_reversion2.diff import placeholder_html
-
 from djangocms_reversion2.signals import make_page_version_dirty
 
 
