@@ -1,0 +1,10 @@
+# requirements from setup.py
+psycopg2>=2.6
+#django-reversion>=2
+djangocms-text-ckeditor
+djangocms-link
+diff-match-patch==20110725.1
+# requirements for testing
+djangocms-helper>=0.9.2,<0.10
+tox
+coverage
