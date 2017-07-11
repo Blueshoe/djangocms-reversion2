@@ -19,7 +19,7 @@ def add_text(page, language, content, n=1):
     # put three text plugins in each placeholder
     for i, ph in enumerate(page.placeholders.all()):
         for language in page.get_languages():
-            for j in xrange(n):
+            for j in range(n):
                 plugin = add_plugin(ph, TextPlugin, language, body=content)
                 plugins.append(plugin)
     make_page_version_dirty(page, language)

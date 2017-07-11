@@ -4,7 +4,7 @@ from djangocms_helper.base_test import BaseTestCase
 from djangocms_reversion2.models import PageVersion
 from djangocms_reversion2.utils import revert_page
 
-import testutils
+from . import testutils
 
 
 class PageRevisionCreateTestCase(BaseTestCase):

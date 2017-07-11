@@ -265,7 +265,7 @@ class PageVersionAdmin(admin.ModelAdmin):
             if key not in grouped_revisions.keys():
                 grouped_revisions[key] = []
             grouped_revisions[key].insert(0, rev)
-        sorted_grouped_revisions = sorted(grouped_revisions.iteritems(), key=lambda (k, v): k, reverse=True)
+        sorted_grouped_revisions = sorted(grouped_revisions.items(), key=lambda i: i[0], reverse=True)
 
         # differences between the placeholders
         if left is 'pageVersion':
