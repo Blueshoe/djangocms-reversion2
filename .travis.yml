@@ -1,8 +1,7 @@
 language: python
-python:
-  - "2.7"
-  - "3.5"
-sudo: false
+
+sudo: required
+dist: trusty # python3.5 and 3.6 are preinstalled here
 
 branches: master  # This way push builds will only run on master branch. Does not affect PR builds.
 
