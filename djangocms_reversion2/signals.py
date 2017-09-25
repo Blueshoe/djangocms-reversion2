@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from cms.operations import REVERT_PAGE_TRANSLATION_TO_LIVE
 from django.db.models import signals
 
 
@@ -48,6 +49,24 @@ def handle_page_publish(**kwargs):
         pass
 
 
+def handle_page_reverted_to_live(**kwargs):
+    page = kwargs.get('obj')
+    translation = kwargs.get('translation')
+    language = translation.language
+    operation = kwargs.get('operation')
+    if operation == REVERT_PAGE_TRANSLATION_TO_LIVE:
+        from djangocms_reversion2.models import PageVersion
+        # if a page draft is replaced by the currently published page, then we have to make a backup and also
+        # set the active flag correctly
+        try:
+            PageVersion.create_version(page, language, version_parent=None,
+                                       comment='Auto before revert to live', title='auto')
+            make_page_version_dirty(page, language)
+        except AssertionError:
+            # AssertionError page is not dirty
+            pass
+
+
 def handle_page_delete(sender, instance, **kwargs):
     # deleting a real page will delete all of its hidden versions
     page = instance
@@ -72,11 +91,13 @@ def delete_hidden_page(sender, **kwargs):
 
 
 def connect_all_plugins():
-    from cms.signals import post_placeholder_operation, post_publish
+    from cms.signals import post_placeholder_operation, post_publish, pre_obj_operation
     post_placeholder_operation.connect(handle_placeholder_change, dispatch_uid='reversion2_placeholder')
     signals.post_save.connect(mark_title_dirty, sender='cms.Title', dispatch_uid='reversion2_title')
     signals.pre_delete.connect(handle_page_delete, sender='cms.Page', dispatch_uid='reversion2_page')
     signals.pre_delete.connect(delete_hidden_page, sender='djangocms_reversion2.PageVersion',
                                 dispatch_uid='reversion2_page_version')
     post_publish.connect(handle_page_publish, dispatch_uid='reversion2_page_publish')
+    pre_obj_operation.connect(handle_page_reverted_to_live,
+                               dispatch_uid='reversion2_page_revert_to_live')
 
