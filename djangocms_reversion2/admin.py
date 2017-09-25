@@ -35,7 +35,7 @@ from cms.utils.permissions import get_current_user, has_page_permission
 from .diff import create_placeholder_contents
 from .forms import PageVersionForm
 from .models import PageVersion
-from .utils import revert_page, revise_all_pages
+from .utils import revert_page, revise_all_pages, VERSION_ROOT_TITLE
 
 BIN_NAMING_PREFIX = getattr(settings, 'DJANGOCMS_REVERSION2_BIN_NAMING_PREFIX', None) or '.'
 BIN_PAGE_NAME_WITHOUT_BEGIN = getattr(settings, 'DJANGOCMS_REVERSION2_BIN_NAME', None) or 'Papierkorb'
@@ -487,11 +487,11 @@ class PageAdmin2(admin.site._registry.pop(Page).__class__):
         can_change_advanced_settings = self.has_change_advanced_settings_permission(request, obj=page)
         has_change_permissions_permission = self.has_change_permissions_permission(request, obj=page)
 
-        is_bin = page.title_set.filter(title__startswith=BIN_NAMING_PREFIX).exists()
+        is_in_bin = page.get_root().title_set.filter(title__startswith=BIN_NAMING_PREFIX).exists()
 
-        is_version = page.get_root().title_set.filter(title__startswith=BIN_NAMING_PREFIX).exists()
+        is_version = page.get_root().title_set.filter(title__startswith=VERSION_ROOT_TITLE).exists()
 
-        if is_bin:
+        if is_in_bin:
             context = {
                 'page': page,
                 'page_is_restricted': True,
@@ -500,7 +500,7 @@ class PageAdmin2(admin.site._registry.pop(Page).__class__):
                 'has_change_permission': False,
                 'has_change_advanced_settings_permission': False,
                 'has_change_permissions_permission': False,
-                'has_move_page_permission': False,
+                'has_move_page_permission': self.has_move_page_permission(request, obj=page),
                 'has_delete_permission': self.has_delete_permission(request, obj=page),
                 'CMS_PERMISSION': False,
             }
