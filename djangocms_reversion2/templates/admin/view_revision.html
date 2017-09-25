@@ -10,9 +10,11 @@
 
     <script type="text/javascript">
         function inject_code() {
-            var iframe_document = document.getElementById('myframe').contentWindow.document;
+            iframe_document = document.getElementById('myframe').contentWindow.document;
             iframe_document.getElementsByClassName('cms-toolbar')[0].remove();
             iframe_document.getElementsByClassName('cms-toolbar-trigger')[0].remove();
+            // monkey patch the missing CMS context
+            window.CMS = document.getElementById('myframe').contentWindow.CMS;
         }
     </script>
 
