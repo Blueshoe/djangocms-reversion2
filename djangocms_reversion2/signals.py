@@ -2,6 +2,8 @@
 from django.db.models import signals
 
 
+
+
 def make_page_version_dirty(page, language):
     pv = page.page_versions.filter(active=True, language=language)
     if pv.count() > 0:
@@ -31,6 +33,21 @@ def handle_placeholder_change(**kwargs):
         make_page_version_dirty(page, language)
 
 
+def handle_page_publish(**kwargs):
+    language = kwargs.get('language')
+    page = kwargs.get('instance')
+    # when the page is published create a backup automatically
+    from djangocms_reversion2.models import PageVersion
+    try:
+        PageVersion.create_version(page, language, version_parent=None,
+                                   comment='Auto before publish', title='auto')
+
+        make_page_version_dirty(page, language)
+    except AssertionError:
+        # AssertionError page is not dirty
+        pass
+
+
 def handle_page_delete(sender, instance, **kwargs):
     # deleting a real page will delete all of its hidden versions
     page = instance
@@ -55,10 +72,11 @@ def delete_hidden_page(sender, **kwargs):
 
 
 def connect_all_plugins():
-    from cms.signals import post_placeholder_operation
+    from cms.signals import post_placeholder_operation, post_publish
     post_placeholder_operation.connect(handle_placeholder_change, dispatch_uid='reversion2_placeholder')
     signals.post_save.connect(mark_title_dirty, sender='cms.Title', dispatch_uid='reversion2_title')
     signals.pre_delete.connect(handle_page_delete, sender='cms.Page', dispatch_uid='reversion2_page')
     signals.pre_delete.connect(delete_hidden_page, sender='djangocms_reversion2.PageVersion',
                                 dispatch_uid='reversion2_page_version')
+    post_publish.connect(handle_page_publish, dispatch_uid='reversion2_page_publish')
 

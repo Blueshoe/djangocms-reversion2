@@ -32,10 +32,11 @@ from django.conf import settings
 
 from cms.utils.permissions import get_current_user, has_page_permission
 
+from djangocms_reversion2.signals import make_page_version_dirty
 from .diff import create_placeholder_contents
 from .forms import PageVersionForm
 from .models import PageVersion
-from .utils import revert_page, revise_all_pages, VERSION_ROOT_TITLE
+from .utils import revert_page, revise_all_pages, VERSION_ROOT_TITLE, revise_page
 
 BIN_NAMING_PREFIX = getattr(settings, 'DJANGOCMS_REVERSION2_BIN_NAMING_PREFIX', None) or '.'
 BIN_PAGE_NAME_WITHOUT_BEGIN = getattr(settings, 'DJANGOCMS_REVERSION2_BIN_NAME', None) or 'Papierkorb'
@@ -162,28 +163,25 @@ class PageVersionAdmin(admin.ModelAdmin):
             else:
                 raise Http404
 
-        # TODO check if page is revised in current state (-> use the dirty flag of the page version)
-        #     if not revert_page(page_revision, request):
-        #         messages.info(request, u'Page is already in this revision!')
-        #         prev = request.META.get('HTTP_REFERER')
-        #         if prev:
-        #             return redirect(prev)
-
-        #     # create a new revision if reverted to keep history correct
-        #     # therefore mark a placeholder as dirty
-        #     # TODO: in case of no placeholder?
-        #     # page_revision.page.placeholders.first().mark_as_dirty(language)
-        #     # create page version
+        # Create a page_version of the page if it is dirty
+        # prior to reverting
+        try:
+            PageVersion.create_version(page, language, version_parent=None, comment='Auto before revert', title='auto')
+        except AssertionError:
+            # AssertionError page is not dirty
+            pass
 
         revert_page(page_version, language)
+        make_page_version_dirty(page, language)
 
         messages.info(request, _(u'You have succesfully reverted to {rev}').format(rev=page_version))
         return self.render_close_frame()
 
     def batch_add(self, request, **kwargs):
         # only superusers are allowed to trigger this
+
         user = get_current_user()
-        if not user.superuser:
+        if not user.is_superuser:
             messages.error(request, _('Only superusers are allowed to use the batch page revision creation mode'))
         else:
             num = revise_all_pages()
