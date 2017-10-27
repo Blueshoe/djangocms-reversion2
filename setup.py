@@ -31,6 +31,7 @@ REQUIREMENTS = [
 setup(
     name='djangocms-reversion2',
     packages=find_packages(exclude=('test_app', 'docs')),
+    include_package_data=True,
     version=__version__,
     description='page versioning for django-cms',
     author='Daniel Pollithy',

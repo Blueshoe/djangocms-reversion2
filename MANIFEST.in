@@ -1,2 +1,2 @@
-include README.rst LICENCE
-recursive-include djangocms_reversion2 *.py *.html *.js
+include README.rst LICENSE
+recursive-include djangocms_reversion2 *.py *.html *.css *.po
