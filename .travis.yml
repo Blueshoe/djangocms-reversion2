@@ -5,6 +5,7 @@ dist: trusty # python3.5 and 3.6 are preinstalled here
 
 branches: master  # This way push builds will only run on master branch. Does not affect PR builds.
 
+
 env:
   - TOX_ENV=flake8
   - TOX_ENV=py27-latest
@@ -21,7 +22,9 @@ env:
   - TOX_ENV=py35-dj19-cms33
 
 install:
-  - pip install tox coverage
+  - pip install tox tox-pyenv coverage
+  - pyenv local 2.7.9 3.5.3
+
 
 script:
   - tox -e $TOX_ENV
