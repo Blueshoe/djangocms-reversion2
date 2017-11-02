@@ -1,7 +1,6 @@
 language: python
 python:
   - "2.7.9"
-  - "3.5.3"
   
 sudo: required
 dist: trusty # python3.5 and 3.6 are preinstalled here
