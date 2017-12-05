@@ -10,8 +10,6 @@ Django-CMS Reversion2
     :target: https://travis-ci.org/Blueshoe/djangocms-reversion2
     :alt: Code analysis status
 
-UNSTABLE: We have tested this project locally but by now never used it in production.
-
 Features
 --------
 These are the core features of Django-CMS Reversion2
