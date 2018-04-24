@@ -52,7 +52,7 @@ class PageVersion(MP_Node):
             else:
                 # limit changed_by and created_by to avoid problems with Custom User Model
                 if len(owner) > constants.PAGE_USERNAME_MAX_LENGTH:
-                    changed_by = u'{0}... (id={1})'.format(owner[:constants.PAGE_USERNAME_MAX_LENGTH - 15], user.pk)
+                    owner = u'{0}... (id={1})'.format(owner[:constants.PAGE_USERNAME_MAX_LENGTH - 15], user.pk)
         else:
             owner = "script"
 
