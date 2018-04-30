@@ -8,7 +8,8 @@ from cms import api, constants
 from cms.admin.pageadmin import PageAdmin
 from cms.middleware.page import get_page
 from cms.models import Page, Title, EmptyTitle
-from cms.utils import get_cms_setting, get_language_from_request, get_language_list, i18n
+from cms.utils import get_language_from_request, get_language_list, i18n
+from cms.utils.conf import get_cms_setting
 from cms.utils import page_permissions
 from collections import defaultdict
 
